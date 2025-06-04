@@ -32,20 +32,20 @@ import DataGrid, {
   ColumnChooser,
   ColumnFixing,
 } from 'devextreme-react/data-grid';
+import CustomStore from 'devextreme/data/custom_store';
 import 'devextreme/dist/css/dx.material.blue.light.css';
 
 export default function ClientInvoiceComponent() {
-  const [jobs, setJobs] = useState<IClientInvoice[]>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 200,
   });
-  const [totalCount, setTotalCount] = useState(0);
-  const [grandTotal, setGrandTotal] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedJobsStatus, setSelectedJobsStatus] = useState<string[]>([]);
   const [invoiceFilter, setInvoiceFilter] = useState<string[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [grandTotal, setGrandTotal] = useState(0);
 
   useEffect(() => {
     const handleResize = () => {
@@ -74,10 +74,35 @@ export default function ClientInvoiceComponent() {
     "Draft",
   ];
 
-  //Calculate Total Invoice Amount
+  // CustomStore for DataGrid
+  const dataSource = useMemo(() => {
+    return new CustomStore({
+      key: '_id',
+      load: async (loadOptions: any) => {
+        const page = (loadOptions.skip ?? 0) / (loadOptions.take ?? pagination.pageSize) + 1;
+        const pageSize = loadOptions.take ?? pagination.pageSize;
+        const filterinvoices = invoiceFilter.join(",");
+        const filterjobs = selectedJobsStatus.join(",");
+        const search = globalFilter;
+        const url = `/api/reports/admin/client-invoice?page=${page}&limit=${pageSize}&filterinvoices=${filterinvoices}&filterjobs=${filterjobs}&search=${search}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch jobs");
+        const data = await res.json();
+        setTotalCount(data.pagination?.total ?? 0);
+        setGrandTotal(data.pagination?.grandTotalInvoices ?? 0);
+        return {
+          data: Array.isArray(data.data) ? data.data : [],
+          totalCount: data.pagination?.total ?? 0,
+        };
+      },
+    });
+  }, [pagination.pageSize, invoiceFilter, selectedJobsStatus, globalFilter]);
+
+  // Calculate Total Invoice Amount for current page (client-side sum)
+  const [pageJobs, setPageJobs] = useState<IClientInvoice[]>([]);
   const TotalInvoiceAmountSum = useMemo(
     () =>
-      jobs.reduce(
+      pageJobs.reduce(
         (sum, job) =>
           sum +
           (typeof job.TotalInvoiceAmount === "number"
@@ -85,40 +110,8 @@ export default function ClientInvoiceComponent() {
             : Number(job.TotalInvoiceAmount) || 0),
         0
       ),
-    [jobs]
+    [pageJobs]
   );
-
-  // Fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `/api/reports/admin/client-invoice?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize
-          }&filterinvoices=${invoiceFilter.join(",")}&filterjobs=${selectedJobsStatus.join(",")}&search=${globalFilter}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch jobs");
-        const data = await res.json();
-
-        if (Array.isArray(data.data)) {
-          setJobs(data.data);
-          setTotalCount(data.pagination.total);
-          setGrandTotal(data.pagination.grandTotalInvoices ?? 0);
-        } else {
-          console.error("Invalid API response", data);
-          setJobs([]);
-          setTotalCount(0);
-          setGrandTotal(0);
-        }
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
-        setJobs([]);
-        setTotalCount(0);
-        setGrandTotal(0);
-      }
-    };
-
-    fetchData();
-  }, [pagination.pageIndex, pagination.pageSize, invoiceFilter, selectedJobsStatus, globalFilter]);
 
   const handleJobsStatusesChange = (status: string) => {
     setSelectedJobsStatus((prev) => {
@@ -303,7 +296,7 @@ export default function ClientInvoiceComponent() {
       {/* DevExtreme DataGrid */}
       <div className="dx-datagrid-wrapper" style={{ height: 600 }}>
         <DataGrid
-          dataSource={jobs}
+          dataSource={dataSource}
           keyExpr="_id"
           showBorders={true}
           columnAutoWidth={true}
@@ -313,7 +306,9 @@ export default function ClientInvoiceComponent() {
           showColumnLines={true}
           showRowLines={true}
           hoverStateEnabled={true}
+          remoteOperations={true}
           onOptionChanged={onPageChanged}
+          onContentReady={e => setPageJobs(e.component.getVisibleRows().map((row: any) => row.data).filter(Boolean))}
         >
           <SearchPanel 
             visible={false} 
