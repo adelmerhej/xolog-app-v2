@@ -1,0 +1,30 @@
+export interface IEmptyContainer extends Document {
+  OrderNo: string;
+  JobNo: string;
+  ReferenceNo: string;
+  JobDate: Date;
+  DepartmentId: string;
+  DepartmentName: string;
+  CustomerName: string;
+  ContainerToCnee: string;
+  dtCntrToCnee: Date;
+  EmptyContainer: string;
+  dtEmptyCntr: Date;
+  UserName: string;
+  SalesName: string;
+  Mbl: string;
+  ContainerNo: string;
+  Ata: Date;
+  Status: string;
+  blstatus: string;
+  Notes: string;
+  TejrimDate: Date;
+  CarrierName: string;
+  ArrivalDays: number;
+  TejrimDays: number;
+  DiffCntrToCnee: number;
+  Departure: string;
+  Destination: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
