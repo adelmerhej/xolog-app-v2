@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchForm } from "@/components/dashboard/search-form";
 import { NavUser } from "@/components/dashboard/nav-user";
-import ClientInvoiceComponent from "@/components/dashboard/admin/reports/client-invoice/clientinvoice-table";
+import { ClientInvoiceComponent } from "@/components/dashboard/admin/reports/client-invoice/clientinvoice-table";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { redirect } from "next/navigation";
