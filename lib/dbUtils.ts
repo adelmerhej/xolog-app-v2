@@ -14,8 +14,6 @@ export const sqlConfig: { user: string; password: string; server: string; databa
   }
 };
 
-
-
 // MongoDB Configuration
 export const mongoConfig = {
   uri: process.env.MONGODB_URI || 'mongodb://localhost:27017',
@@ -28,9 +26,10 @@ const dbName = mongoConfig.dbName;
 // Execute SQL Stored Procedure and return JSON
 async function executeStoredProc(procedureName: string, params: any = {}): Promise<any> {
   // Validate SQL configuration only during runtime
-  if (!process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_SERVER || !process.env.SQL_DATABASE) {
+  if (!process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_HOST || !process.env.SQL_DATABASE) {
     throw new Error('Missing required SQL Server environment variables');
   }
+
   let pool: ConnectionPool | null = null;
   try {
     pool = await new ConnectionPool(sqlConfig).connect();
@@ -41,8 +40,12 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
       request.input(key, value);
     }
     
-    const result = await request.query(`EXEC ${procedureName} FOR JSON PATH`);
-    return JSON.parse(result.recordset[0][""]); 
+    const result = await request.query(`EXEC ${procedureName}`);
+    const jsonResult = result.recordset[0][""];
+
+    console.log(jsonResult);
+    
+    return JSON.parse(jsonResult); 
   } finally {
     if (pool) await pool.close();
   }
