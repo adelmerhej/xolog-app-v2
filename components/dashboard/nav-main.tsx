@@ -18,6 +18,7 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
+import SyncButton from "../sync/SyncButton";
 
 export function NavMain({
   items,
@@ -40,6 +41,7 @@ export function NavMain({
           Dashboard
         </SidebarGroupLabel>
       </Link>
+      <SyncButton />
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
