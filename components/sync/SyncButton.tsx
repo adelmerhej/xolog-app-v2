@@ -25,10 +25,9 @@ export default function SyncButton() {
       const result = await response.json();
       setSyncResult(result);
 
-    } catch (err) {
+    } catch (err: unknown) {
         console.log("This error: ", err);
-
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
         setIsSyncing(false);
     }
