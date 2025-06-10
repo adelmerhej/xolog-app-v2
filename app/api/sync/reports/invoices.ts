@@ -11,7 +11,7 @@ export default async function handler(
 
   try {
     // Execute the stored procedure with parameters
-    const invoiceData = await executeStoredProc('ClientsInvoiceReport_to_JSON', {
+    const invoiceData = await executeStoredProc('__ClientsInvoiceReport_to_JSON', {
       DateFrom: req.body.dateFrom || null,
       DateTo: req.body.dateTo || null,
       UserId: req.body.userId || 0,
