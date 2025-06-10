@@ -11,6 +11,8 @@ export default function SyncButton() {
     setError(null);
 
     try {
+      console.log("Syncing...", new Date().toLocaleTimeString());
+      
       const response = await fetch('/api/sync/reports/all', {
         method: 'POST',
         headers: {
@@ -24,6 +26,8 @@ export default function SyncButton() {
 
       const result = await response.json();
       setSyncResult(result);
+      
+      console.log("Synced", new Date().toLocaleTimeString());
 
     } catch (err: unknown) {
         console.log("This error: ", err);
@@ -50,15 +54,8 @@ export default function SyncButton() {
       )}
 
       {syncResult && !error && (
-        <div className="bg-gray-200 p-2 rounded">
-          <h4>Sync Results:</h4>
-          <ul>
-            {syncResult.results.map((item: any, index: number) => (
-              <li key={index}>
-                {item.procedure}: {item.status} - {item.count || item.error}
-              </li>
-            ))}
-          </ul>
+        <div className="bg-green-200 p-2 rounded">
+          <h4>Sync Results: {syncResult.success ? 'Failed' : 'Success'}</h4>
         </div>
       )}
     </div>

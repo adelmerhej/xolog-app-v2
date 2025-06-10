@@ -52,7 +52,7 @@
     "lucide-react": "^0.511.0",
     "luxon": "^3.6.1",
     "mantine-datatable": "^7.17.1",
-    "mongodb": "^6.16.0",
+    "mongodb": "^6.17.0",
     "mongoose": "^8.15.0",
     "motion": "^12.12.1",
     "mssql": "^11.0.1",
@@ -96,7 +96,7 @@
     "@types/file-saver": "^2.0.7",
     "@types/luxon": "^3.6.2",
     "@types/mssql": "^9.1.7",
-    "@types/node": "^20",
+    "@types/node": "^20.19.0",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^19",
     "@types/react-color": "^3.0.13",
@@ -109,6 +109,7 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "sass": "^1.89.1",
     "tailwindcss": "^4.1.7",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   }
 }

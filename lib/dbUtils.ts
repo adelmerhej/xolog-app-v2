@@ -3,18 +3,19 @@ import { MongoClient } from 'mongodb';
 import { ConnectionPool } from 'mssql';
 
 // SQL Server Configuration
-export const sqlConfig: { user: string; password: string; server: string; database: string; options: { encrypt: boolean; trustServerCertificate: boolean; } } = {
+export const sqlConfig: { user: string; password: string; server: string; database: string; options: { encrypt: boolean; trustServerCertificate: boolean; }; connectionTimeout: number; requestTimeout: number; } = {
   user: process.env.SQL_USER || 'dbuser',
   password: process.env.SQL_PASSWORD || 'dbuser',
   server: process.env.SQL_HOST || 'localhost',
   database: process.env.SQL_DATABASE || 'master',
   options: {
-    encrypt: true, // For Azure
-    trustServerCertificate: true, // For local dev
-    //connectionTimeout: 30000, // 30 seconds
-    //requestTimeout: 60000 // 60 seconds
-  }
+    encrypt: false, // For Azure
+    trustServerCertificate: true // For local dev
+  },
+  connectionTimeout: 30000, // 30 seconds
+  requestTimeout: 60000 // 60 seconds
 };
+
 
 // MongoDB Configuration
 export const mongoConfig = {
@@ -33,90 +34,154 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
   }
 
   let pool: ConnectionPool | null = null;
+
   try {
-    console.log(`Connecting to SQL Server for procedure: ${procedureName}`);
-    console.log(`SQL Server config:`, {
-      user: sqlConfig.user ? '***' : 'not set',
-      server: sqlConfig.server,
-      database: sqlConfig.database
-    });
-    
     pool = await new ConnectionPool(sqlConfig).connect();
-    
-    console.log(`Connected to SQL Server. Executing procedure: ${procedureName}`);
-    console.log(`Procedure parameters:`, params);
-    
     const request = pool.request();
-    
+
     // Add parameters dynamically
     for (const [key, value] of Object.entries(params)) {
       request.input(key, value);
-      console.log(`Added parameter: ${key} =`, value);
-    }
-    
-    console.time(`SQL execution time for ${procedureName}`);
-    const result = await request.query(`EXEC ${procedureName}`);
-    console.timeEnd(`SQL execution time for ${procedureName}`);
-    
-    console.log(`SQL result object structure for ${procedureName}:`, {
-      recordsets: result.recordsets?.length,
-      recordset: result.recordset?.length,
-      output: Object.keys(result.output || {}),
-      rowsAffected: result.rowsAffected
-    });
-    
-    console.log(`Raw SQL result from ${procedureName}:`, {
-      recordsetSample: result.recordset?.slice(0, 1), // Show first record only
-      output: result.output,
-      rowsAffected: result.rowsAffected
-    });
-    
-    const record = result.recordset?.[0];
-    
-    if (!record) {
-      throw new Error(`No records returned from ${procedureName}`);
+      //console.log(`Added parameter: ${key} =`, value);
     }
 
-    const jsonResult = record["" ];
-    
+    //console.time(`SQL execution time for ${procedureName}`);
+    const result = await request.query(`EXEC ${procedureName}`);
+    //console.timeEnd(`SQL execution time for ${procedureName}`);
+
+    // console.log(`SQL result object structure for ${procedureName}:`, {
+    //   recordsets: result.recordsets?.length,
+    //   recordset: result.recordset?.length,
+    //   output: Object.keys(result.output || {}),
+    //   rowsAffected: result.rowsAffected
+    // });
+
+    // Get the first column name (which will be the JSON_F52E2B61-... column)
+    const jsonColumn = Object.keys(result.recordset[0])[0];
+    const jsonResult = result.recordset[0][jsonColumn];
+
+    // Log the raw JSON result
+    //console.log(`JSON result from ${procedureName}:`, jsonResult);
+
     if (jsonResult === undefined || jsonResult === null) {
       throw new Error(`Procedure ${procedureName} returned undefined or null JSON`);
     }
 
-    console.log(`JSON result from ${procedureName}:`, jsonResult);
-    
+    // Parse the JSON string and ensure we return an array
     try {
-      return JSON.parse(jsonResult);
+      const parsedResult = JSON.parse(jsonResult);
+      // Ensure we always return an array, even if the result is a single object
+      return Array.isArray(parsedResult) ? parsedResult : [parsedResult];
+
     } catch (parseError) {
-      console.error(`Failed to parse JSON from ${procedureName}:`, jsonResult);
-      throw new Error(`Invalid JSON format from ${procedureName}: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
-    } 
+      console.error(`Error parsing JSON from ${procedureName}:`, parseError);
+      throw new Error(`Failed to parse JSON result from ${procedureName}: ${parseError}`);
+    }
   } finally {
-    if (pool) await pool.close();
+    // Close the pool if it exists
+    if (pool) {
+      await pool.close();
+    }
   }
 }
 
 // Save JSON data to MongoDB
 async function saveToMongoDB(collectionName: string, data: any[]) {
   try {
-    await mongoClient.connect();
+    // Validate data before proceeding
+    if (!Array.isArray(data)) {
+      throw new Error(`Expected array of documents, got: ${typeof data}`);
+    }
+    if (data.length === 0) {
+      console.log(`No documents to insert for collection ${collectionName}`);
+      return;
+    }
+
+    // Validate MongoDB connection
+    if (!mongoClient) {
+      throw new Error('MongoClient is not initialized');
+    }
+    
+    // Connect to MongoDB with retry
+    let isConnected = false;
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (!isConnected && retryCount < maxRetries) {
+      try {
+        await mongoClient.connect();
+        isConnected = true;
+        //console.log(`Successfully connected to MongoDB at ${mongoConfig.uri}`);
+      } catch (connectError) {
+        retryCount++;
+        console.error(`Failed to connect to MongoDB (attempt ${retryCount}/${maxRetries}):`, connectError);
+        if (retryCount >= maxRetries) {
+          throw new Error(`Failed to connect to MongoDB after ${maxRetries} attempts`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+      }
+    }
+
+    // Get database and collection
     const db = mongoClient.db(dbName);
     const collection = db.collection(collectionName);
     
-    // Insert or update documents
-    const bulkOps = data.map(doc => ({
-      updateOne: {
-        filter: { _id: doc.JobNo || doc.InvoiceNo || doc.id }, 
-        update: { $set: doc },
-        upsert: true
-      }
-    }));
+    // Clear existing collection with retry
+    let clearSuccess = false;
+    retryCount = 0;
     
-    if (bulkOps.length > 0) {
-      await collection.bulkWrite(bulkOps);
+    while (!clearSuccess && retryCount < maxRetries) {
+      try {
+        await collection.deleteMany({});
+        //console.log(`Cleared collection ${collectionName}:`, {
+        //  deletedCount: deleteResult.deletedCount,
+        //  acknowledged: deleteResult.acknowledged
+        //});
+        clearSuccess = true;
+      } catch (deleteError) {
+        retryCount++;
+        console.error(`Failed to clear collection (attempt ${retryCount}/${maxRetries}):`, deleteError);
+        if (retryCount >= maxRetries) {
+          throw new Error(`Failed to clear collection ${collectionName} after ${maxRetries} attempts`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
     }
+    
+    // Insert new documents with retry
+    let insertSuccess = false;
+    retryCount = 0;
+    
+    while (!insertSuccess && retryCount < maxRetries) {
+      try {
+        await collection.insertMany(data);
+        //console.log(`Inserted documents into collection ${collectionName}:`, {
+        //  insertedCount: insertResult.insertedCount,
+        //  acknowledged: insertResult.acknowledged
+        //});
+        insertSuccess = true;
+      } catch (insertError) {
+        retryCount++;
+        console.error(`Failed to insert documents (attempt ${retryCount}/${maxRetries}):`, insertError);
+        if (retryCount >= maxRetries) {
+          throw new Error(`Failed to insert documents into ${collectionName} after ${maxRetries} attempts`);
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
+    }
+
+  } catch (error) {
+    console.error(`Error in saveToMongoDB for collection ${collectionName}:`, error);
+    throw error;
   } finally {
-    await mongoClient.close();
+    try {
+      if (mongoClient) {
+        await mongoClient.close();
+        //console.log(`Disconnected from MongoDB`);
+      }
+    } catch (disconnectError) {
+      console.error('Error disconnecting from MongoDB:', disconnectError);
+    }
   }
 }
 
