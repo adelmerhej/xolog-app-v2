@@ -10,7 +10,9 @@ export const sqlConfig: { user: string; password: string; server: string; databa
   database: process.env.SQL_DATABASE || 'master',
   options: {
     encrypt: true, // For Azure
-    trustServerCertificate: true // For local dev
+    trustServerCertificate: true, // For local dev
+    connectionTimeout: 30000, // 30 seconds
+    requestTimeout: 60000 // 60 seconds
   }
 };
 
@@ -32,20 +34,63 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 
   let pool: ConnectionPool | null = null;
   try {
+    console.log(`Connecting to SQL Server for procedure: ${procedureName}`);
+    console.log(`SQL Server config:`, {
+      user: sqlConfig.user ? '***' : 'not set',
+      server: sqlConfig.server,
+      database: sqlConfig.database
+    });
+    
     pool = await new ConnectionPool(sqlConfig).connect();
+    
+    console.log(`Connected to SQL Server. Executing procedure: ${procedureName}`);
+    console.log(`Procedure parameters:`, params);
+    
     const request = pool.request();
     
     // Add parameters dynamically
     for (const [key, value] of Object.entries(params)) {
       request.input(key, value);
+      console.log(`Added parameter: ${key} =`, value);
     }
     
+    console.time(`SQL execution time for ${procedureName}`);
     const result = await request.query(`EXEC ${procedureName}`);
-    const jsonResult = result.recordset[0][""];
-
-    console.log(jsonResult);
+    console.timeEnd(`SQL execution time for ${procedureName}`);
     
-    return JSON.parse(jsonResult); 
+    console.log(`SQL result object structure for ${procedureName}:`, {
+      recordsets: result.recordsets?.length,
+      recordset: result.recordset?.length,
+      output: Object.keys(result.output || {}),
+      rowsAffected: result.rowsAffected
+    });
+    
+    console.log(`Raw SQL result from ${procedureName}:`, {
+      recordsetSample: result.recordset?.slice(0, 1), // Show first record only
+      output: result.output,
+      rowsAffected: result.rowsAffected
+    });
+    
+    const record = result.recordset?.[0];
+    
+    if (!record) {
+      throw new Error(`No records returned from ${procedureName}`);
+    }
+
+    const jsonResult = record["" ];
+    
+    if (jsonResult === undefined || jsonResult === null) {
+      throw new Error(`Procedure ${procedureName} returned undefined or null JSON`);
+    }
+
+    console.log(`JSON result from ${procedureName}:`, jsonResult);
+    
+    try {
+      return JSON.parse(jsonResult);
+    } catch (parseError) {
+      console.error(`Failed to parse JSON from ${procedureName}:`, jsonResult);
+      throw new Error(`Invalid JSON format from ${procedureName}: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+    } 
   } finally {
     if (pool) await pool.close();
   }

@@ -3,11 +3,20 @@ import { sqlConfig, mongoConfig } from '@/lib/dbUtils';
 import { NextResponse } from 'next/server';
 
 const procedures = [
-  { name: '__ClientsInvoiceReport_to_JSON', collection: 'ClientsInvoiceReport' },
-  { name: '__Empty_Containers_to_JSON', collection: 'emptycontainers' },
-  { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
-  { name: '__Total_Profit_to_JSON', collection: 'totalprofits' }
+  { name: '__ClientsInvoiceReport_to_JSON', collection: 'invoices' },
+  { name: '__Empty_Containers_to_JSON', collection: 'emptyContainers' },
+  { name: '__Job_Status_to_JSON', collection: 'jobStatus' },
+  { name: '__Total_Profit_to_JSON', collection: 'profitReports' }
 ];
+
+// Validate collection names
+const validCollections = new Set(['invoices', 'emptyContainers', 'jobStatus', 'profitReports']);
+
+for (const proc of procedures) {
+  if (!validCollections.has(proc.collection)) {
+    throw new Error(`Invalid collection name: ${proc.collection}`);
+  }
+}
 
 export async function POST() {
   try {
