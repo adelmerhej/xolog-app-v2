@@ -11,8 +11,8 @@ export const sqlConfig: { user: string; password: string; server: string; databa
   options: {
     encrypt: true, // For Azure
     trustServerCertificate: true, // For local dev
-    connectionTimeout: 30000, // 30 seconds
-    requestTimeout: 60000 // 60 seconds
+    //connectionTimeout: 30000, // 30 seconds
+    //requestTimeout: 60000 // 60 seconds
   }
 };
 
