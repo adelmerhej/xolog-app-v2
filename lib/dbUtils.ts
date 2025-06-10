@@ -4,8 +4,8 @@ import { ConnectionPool } from 'mssql';
 
 // SQL Server Configuration
 export const sqlConfig: { user: string; password: string; server: string; database: string; options: { encrypt: boolean; trustServerCertificate: boolean; } } = {
-  user: process.env.SQL_USER || '',
-  password: process.env.SQL_PASSWORD || '',
+  user: process.env.SQL_USER || 'dbuser',
+  password: process.env.SQL_PASSWORD || 'dbuser',
   server: process.env.SQL_HOST || 'localhost',
   database: process.env.SQL_DATABASE || 'master',
   options: {
@@ -14,10 +14,7 @@ export const sqlConfig: { user: string; password: string; server: string; databa
   }
 };
 
-// Ensure required environment variables are set
-if (!process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_SERVER || !process.env.SQL_DATABASE) {
-  throw new Error('Missing required SQL Server environment variables');
-}
+
 
 // MongoDB Configuration
 export const mongoConfig = {
@@ -30,6 +27,10 @@ const dbName = mongoConfig.dbName;
 
 // Execute SQL Stored Procedure and return JSON
 async function executeStoredProc(procedureName: string, params: any = {}): Promise<any> {
+  // Validate SQL configuration only during runtime
+  if (!process.env.SQL_USER || !process.env.SQL_PASSWORD || !process.env.SQL_SERVER || !process.env.SQL_DATABASE) {
+    throw new Error('Missing required SQL Server environment variables');
+  }
   let pool: ConnectionPool | null = null;
   try {
     pool = await new ConnectionPool(sqlConfig).connect();
@@ -41,7 +42,7 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
     }
     
     const result = await request.query(`EXEC ${procedureName} FOR JSON PATH`);
-    return JSON.parse(result.recordset[0][""]); // Parse the JSON result
+    return JSON.parse(result.recordset[0][""]); 
   } finally {
     if (pool) await pool.close();
   }
@@ -57,7 +58,7 @@ async function saveToMongoDB(collectionName: string, data: any[]) {
     // Insert or update documents
     const bulkOps = data.map(doc => ({
       updateOne: {
-        filter: { _id: doc.JobNo || doc.InvoiceNo || doc.id }, // Use appropriate unique field
+        filter: { _id: doc.JobNo || doc.InvoiceNo || doc.id }, 
         update: { $set: doc },
         upsert: true
       }
