@@ -1,4 +1,4 @@
-import { executeStoredProc, saveToMongoDB } from '@/lib/dbUtils';
+import { executeStoredProc, saveToMongoDB, updateJobStatuses } from '@/lib/dbUtils';
 import { sqlConfig, mongoConfig } from '@/lib/dbUtils';
 import { NextResponse } from 'next/server';
 
@@ -8,10 +8,6 @@ const procedures = [
   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' },
   { name: '__Job_Status_to_JSON', collection: 'jobstatus' }
 ];
-
-// const procedures = [
-//   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' }
-// ];
 
 // Validate collection names
 const validCollections = new Set(['ClientsInvoiceReport', 'emptycontainers', 'totalprofits', 'jobstatus']);
@@ -48,6 +44,9 @@ export async function POST() {
       }
     }
 
+    // Update job statuses after sync
+    await updateJobStatuses();
+    
     console.log("Synced", new Date().toLocaleTimeString());
     
     return NextResponse.json({ results });

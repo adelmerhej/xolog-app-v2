@@ -36,7 +36,7 @@ export default function SyncButton() {
         setIsSyncing(false);
     }
   };
-
+  
   return (
     <div>
       <button 
