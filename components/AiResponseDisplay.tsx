@@ -6,9 +6,9 @@ import React from 'react';
 import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+//import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 // Choose a style that fits your theme
-import { coldarkDark, coldarkCold } from 'react-syntax-highlighter/dist/esm/styles/prism';
+//import { coldarkDark, coldarkCold } from 'react-syntax-highlighter/dist/esm/styles/prism';
 //import type { CodeProps } from 'react-markdown/lib/ast-to-react';
 
 interface CodeProps {
@@ -51,7 +51,7 @@ const AiResponseDisplay: React.FC<AiResponseDisplayProps> = ({ response, loading
 
   // Determine light/dark mode for syntax highlighter theme
   const isDarkMode = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const codeStyle = isDarkMode ? coldarkDark : coldarkCold;
+  const codeStyle = isDarkMode ? "dark" : "light";
 
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-w-full overflow-auto">
@@ -63,14 +63,12 @@ const AiResponseDisplay: React.FC<AiResponseDisplayProps> = ({ response, loading
             code({ node, inline, className, children, ...props }: CodeProps) {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
-                <SyntaxHighlighter
+                <pre
                   style={codeStyle as any} // Type assertion to fix the style type issue
-                  language={match?.[1] || 'text'}
-                  PreTag="div"
                   {...props}
                 >
                   {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
+                </pre>
               ) : (
                 <code className={className} {...props}>
                   {children}
