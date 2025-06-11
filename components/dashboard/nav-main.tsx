@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, type LucideIcon } from "lucide-react";
+import { ChevronRight, RefreshCw, type LucideIcon } from "lucide-react";
 
 import {
   Collapsible,
@@ -41,7 +41,16 @@ export function NavMain({
           Dashboard
         </SidebarGroupLabel>
       </Link>
-      <SyncButton />
+      <div className="flex space-x-2 items-center">
+        <SyncButton />
+        <button
+          onClick={() => window.location.reload()}
+          className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          title="Refresh page"
+        >
+          <RefreshCw className="w-4 h-4" />
+        </button>
+      </div>
       <SidebarMenu>
         {items.map((item) => (
           <Collapsible
