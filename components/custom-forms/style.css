@@ -1,0 +1,248 @@
+:root {
+    --grid-border-color: var(--kendo-color-border);
+    --grid-bg-color: var(--kendo-color-background);
+    --grid-header-bg: var(--kendo-color-background-alt);
+    --grid-header-text-color: var(--kendo-color-text);
+    --grid-cell-padding: 0.75rem;
+    --grid-header-height: 48px;
+    --grid-row-height: 40px;
+}
+
+/* Grid container */
+.k-grid {
+    width: 100%;
+    border: 1px solid var(--grid-border-color);
+    border-radius: 0.5rem;
+    background: var(--grid-bg-color);
+    overflow: hidden;
+}
+
+/* Grid header */
+.k-grid-header {
+    background: var(--grid-header-bg);
+    border-bottom: 1px solid var(--grid-border-color);
+    height: var(--grid-header-height);
+}
+
+.k-grid-header th {
+    padding: var(--grid-cell-padding);
+    color: var(--grid-header-text-color);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Grid body */
+.k-grid-content {
+    border-bottom: 1px solid var(--grid-border-color);
+    min-height: calc(100vh - 200px);
+}
+
+.k-grid tbody tr {
+    border-bottom: 1px solid var(--grid-border-color);
+    height: var(--grid-row-height);
+}
+
+.k-grid tbody tr:last-child {
+    border-bottom: none;
+}
+
+.k-grid td {
+    padding: var(--grid-cell-padding);
+    border-bottom: 1px solid var(--grid-border-color);
+    vertical-align: middle;
+}
+
+/* Grid footer */
+.k-grid-footer {
+    background: var(--grid-header-bg);
+    border-top: 1px solid var(--grid-border-color);
+    padding: var(--grid-cell-padding);
+}
+
+/* Grid tools */
+.k-grid-toolbar {
+    padding: 0.75rem;
+    background: var(--grid-header-bg);
+    border-bottom: 1px solid var(--grid-border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Grid search box */
+.k-grid-search-box {
+    padding: 0.5rem;
+    flex: 1;
+    max-width: 300px;
+}
+
+/* Grid actions */
+.k-grid .k-button {
+    margin: 0 0.25rem;
+    min-width: 100px;
+}
+
+/* Grid export buttons */
+.k-grid .k-button-group {
+    margin: 0.5rem 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Grid badges */
+.k-badge-container {
+    margin-left: 0.75rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Grid contact image */
+.contact-img {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-position: center center;
+    background-size: cover;
+    border: 1px solid var(--grid-border-color);
+    object-fit: cover;
+    margin-right: 0.5rem;
+}
+
+/* Grid rating */
+.k-rating-item .k-svg-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--kendo-color-primary);
+    cursor: pointer;
+}
+
+/* Grid sparkline */
+.no-border-sparkline {
+    width: 100%;
+    padding: 0.5rem;
+    background: var(--grid-bg-color);
+}
+
+.no-border-sparkline svg > g > path:first-child {
+    fill: none;
+}
+
+.no-border-sparkline .k-sparkline {
+    width: 100%;
+    height: 100%;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .k-grid-header th {
+        min-width: 100px;
+    }
+
+    .k-grid td {
+        padding: 0.5rem;
+    }
+
+    .k-grid-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .k-grid-search-box {
+        max-width: 100%;
+    }
+}
+
+/* Custom cells */
+.person-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.budget-cell {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    color: var(--kendo-color-text);
+}
+
+.progress-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.progress-cell .k-progressbar {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.rating-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.country-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.country-cell img {
+    width: 24px;
+    height: 16px;
+    object-fit: contain;
+}
+
+/* Hover states */
+.k-grid tbody tr:hover {
+    background-color: var(--kendo-color-background-hover);
+}
+
+.k-grid tbody tr:hover td {
+    border-bottom-color: var(--kendo-color-border-hover);
+}
+
+/* Focus states */
+.k-grid .k-focus {
+    outline: 2px solid var(--kendo-color-focus);
+    outline-offset: 2px;
+}
+
+/* Loading state */
+.k-grid .k-loading {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+/* Selection */
+.k-grid .k-selected {
+    background-color: var(--kendo-color-selected);
+    color: var(--kendo-color-selected-text);
+}
+
+/* Sort indicators */
+.k-grid .k-sort-asc::after,
+.k-grid .k-sort-desc::after {
+    margin-left: 0.5rem;
+    color: var(--kendo-color-text);
+}
+
+/* Filter menu */
+.k-grid .k-filter-menu {
+    border-radius: 0.5rem;
+    box-shadow: var(--kendo-shadow-sm);
+}
+
+/* Column menu */
+.k-grid .k-column-menu {
+    border-radius: 0.5rem;
+    box-shadow: var(--kendo-shadow-sm);
+}

@@ -15,7 +15,7 @@ const AiPage = () => {
   const router = useRouter();
 
   const handleBack = () => {
-    router.push('/dashboard');
+    router.back();
   };
 
   return (

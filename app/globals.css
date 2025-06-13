@@ -139,3 +139,10 @@ html, body, #__next {
   }
 }
 
+.k-grid {
+  font-size: 0.75rem !important;
+}
+
+.k-grid td, .k-grid th {
+  font-size: inherit !important;
+}

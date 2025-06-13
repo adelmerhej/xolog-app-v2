@@ -1,630 +1,334 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
+import { GridPDFExport } from "@progress/kendo-react-pdf";
+import { ExcelExport } from "@progress/kendo-react-excel-export";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { Grid, GridColumn as Column, GridCustomCellProps } from "@progress/kendo-react-grid";
+import { createPortal } from "react-dom";
+import { Button } from "@progress/kendo-react-buttons";
+import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
+import { IJobStatus } from "@/types/reports/IJobStatus";
+import {
+  TotalsCell,
+  ColumnMenu,
+  PersonCell,
+  ProgressCell,
+  RatingCell,
+  CountryCell,
+} from "@/components/data-table/custom-cells";
 
-import { useEffect, useState, useMemo } from "react";
-import { ITotalProfit } from "@/types/reports/ITotalProfit";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+const loadingPanelMarkup = (
+  <div className="k-loading-mask">
+    <span className="k-loading-text">Loading</span>
+    <div className="k-loading-image" />
+    <div className="k-loading-color" />
+  </div>
+);
+
+const LoadingPanel = (props: { gridRef: any }) => {
+  const { gridRef } = props;
+  const gridContent =
+    gridRef.current && gridRef.current.querySelector(".k-grid-content");
+  return gridContent
+    ? createPortal(loadingPanelMarkup, gridContent)
+    : loadingPanelMarkup;
+};
+
+// Helper function to format dates
+const formatDate = (dateString: string | Date | null | undefined): string => {
+  if (!dateString) return '';
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
+
+// Define all possible columns
+const allColumns = [
+  { 
+    field: "JobDate", 
+    title: "Job Date", 
+    visible: true,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.JobDate)}</td>;
+      }
+    }
+  },  
+  { field: "JobNo", title: "Job#", width: "100px", visible: true },
+  { field: "ReferenceNo", title: "Reference#", visible: true },
+
+  { field: "CustomerName", title: "Customer", width: "150px", visible: true },
+  { 
+    field: "PaymentDate", 
+    title: "Payment Date", 
+    width: "120px",
+    visible: true,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.PaymentDate)}</td>;
+      }
+    }
+  },
+  { field: "MemberOf", title: "Member Of", visible: true },  
+  { 
+    field: "ATA", 
+    title: "ATA", 
+    width: "120px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.ATA)}</td>;
+      }
+    }
+  },
+  { 
+    field: "ETA", 
+    title: "ETA", 
+    width: "120px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.ETA)}</td>;
+      }
+    }
+  },  
+  { 
+    field: "Arrival", 
+    title: "Arrival", 
+    width: "120px",
+    visible: true,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.Arrival)}</td>;
+      }
+    }
+  },
+  { field: "StatusType", title: "Status", width: "100px", visible: true },
+  { 
+    field: "TotalProfit", 
+    title: "Profit", 
+    visible: true,
+    columnMenu: ColumnMenu,
+    cells: { data: TotalsCell },
+    width: "150px"
+  }
+];
 
 export default function JobStatusComponent() {
-  const [jobs, setJobs] = useState<ITotalProfit[]>([]);
+  const gridRef = React.useRef<HTMLDivElement>(null);
+  const [jobs, setJobs] = useState<IJobStatus[]>([]);
+  const [showLoading, setShowLoading] = React.useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 200,
   });
   const [totalCount, setTotalCount] = useState(0);
-  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(["New"]);
+  const [columns, setColumns] = useState(allColumns);
   const [isMobile, setIsMobile] = useState(false);
-  
+
+  const DATA_ITEM_KEY = "id";
+
+  // Handle mobile view
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-
-      // When switching from mobile to desktop, show all columns
-      if (!mobile && isMobile) {
-        const newVisibility: VisibilityState = {};
-        table.getAllLeafColumns().forEach((col) => {
-          newVisibility[col.id] = true;
-        });
-        setColumnVisibility(newVisibility);
+      if (mobile) {
+        // Set mobile-friendly columns
+        setColumns(prevColumns => 
+          prevColumns.map(column => ({
+            ...column,
+            visible: ["JobNo", "CustomerName", "ArrivalDays", "TejrimDays"].includes(column.field)
+          }))
+        );
+      } else {
+        // Reset to default visible columns
+        setColumns(prevColumns => 
+          prevColumns.map(column => ({
+            ...column,
+            visible: allColumns.find(c => c.field === column.field)?.visible || false
+          }))
+        );
       }
     };
 
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [isMobile]);
-
-  const departments = [
-    "Import",
-    "Export",
-    "Clearance",
-    "Land Freight",
-    "Sea Cross",
-  ];
-  const statuses = ["New", "FullPaid", "Delivered", "Cancelled"];
-
-  // Presets for column visibility
-  const presets = [
-    {
-      name: "Default",
-      columns: [
-        "JobDate",
-        "JobNo",
-        "ReferenceNo",
-        "CustomerName",
-        "PaymentDate",
-        "MemberOf",
-        "ATA",
-        "ETA",
-        "Arrival",
-        "StatusType",
-        "TotalProfit",
-      ],
-    },
-    {
-      name: "Minimal",
-      columns: [
-        "JobDate",
-        "JobNo",
-        "ReferenceNo",
-        "CustomerName",
-        "PaymentDate",
-        "StatusType",
-        "TotalProfit",
-      ],
-    },
-    {
-      name: "Mobile",
-      columns: ["JobNo", "CustomerName", "StatusType", "TotalProfit"],
-    },
-  ];
-
-  
-  const handleDepartmentChange = (dept: string) => {
-    setSelectedDepartments((prev) => {
-      const isSelected = prev.includes(dept);
-      const newSelection = isSelected
-        ? prev.filter((d) => d !== dept)
-        : [...prev, dept];
-      return newSelection;
-    });
-  };
-
-  const handleStatusesChange = (status: string) => {
-    setSelectedStatuses((prev) => {
-      const isSelected = prev.includes(status);
-      const newSelection = isSelected
-        ? prev.filter((d) => d !== status)
-        : [...prev, status];
-      return newSelection;
-    });
-  };
-
-  const filteredJobs = jobs;
-
-  // Define columns
-  const columns = useMemo<ColumnDef<ITotalProfit>[]>(
-    () => [
-      {
-        accessorKey: "JobDate",
-        header: "Job Date",
-        cell: ({ getValue }) => {
-          const date = new Date(getValue() as string);
-          return date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          });
-        },
-      },
-      {
-        accessorKey: "JobNo",
-        header: "Job No",
-      },
-      {
-        accessorKey: "ReferenceNo",
-        header: "Reference",
-      },
-      {
-        accessorKey: "CustomerName",
-        header: "Customer",
-      },
-      {
-        accessorKey: "PaymentDate",
-        header: "Payment Date",
-        cell: ({ getValue }) => {
-          const value = getValue();
-          if (!value) return "";
-          const date = new Date(value as string);
-          return isNaN(date.getTime())
-            ? ""
-            : date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
-        },
-      },
-      {
-        accessorKey: "MemberOf",
-        header: "MemberOf",
-      },
-      {
-        id: "Arrival",
-        header: "Arrival",
-        cell: ({ row }) => {
-          const ata = row.original.ATA;
-          const eta = row.original.ETA;
-          const value = ata || eta;
-          if (!value) return "";
-          const date = new Date(String(value));
-          return isNaN(date.getTime())
-            ? ""
-            : date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
-        },
-      },
-      {
-        accessorKey: "StatusType",
-        header: "Status",
-      },
-      {
-        accessorKey: "TotalProfit",
-        header: "Profit",
-        cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
-      },
-    ],
-    []
-  );
-
-  //Calculate total profit
-  const totalProfitSum = useMemo(
-    () =>
-      filteredJobs.reduce(
-        (sum, job) =>
-          sum +
-          (typeof job.TotalProfit === "number"
-            ? job.TotalProfit
-            : Number(job.TotalProfit) || 0),
-        0
-      ),
-    [filteredJobs]
-  );
+  }, []);
 
   // Fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const queryParams = new URLSearchParams();
-        queryParams.set("page", String(pagination.pageIndex + 1));
-        queryParams.set("limit", String(pagination.pageSize));
-
-        if (selectedDepartments.length > 0) {
-          queryParams.set("departments", selectedDepartments.join(","));
+  const fetchData = useCallback(async () => {
+    try {
+      setShowLoading(true);
+  
+      const res = await fetch(
+        `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${
+          pagination.pageSize
+        }&search=${globalFilter}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-
-        if (selectedStatuses.length > 0) {
-          queryParams.set("status", selectedStatuses.join(","));
-        }
-
-        const res = await fetch(`/api/reports/admin/job-status?${queryParams}`);
-        if (!res.ok) throw new Error("Failed to fetch jobs");
-        const data = await res.json();
-
-        if (Array.isArray(data.data)) {
-          setJobs(data.data);
-          setTotalCount(data.pagination.total);
-          setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
-        } else {
-          console.error("Invalid API response", data);
-          setJobs([]);
-          setTotalCount(0);
-          setGrandTotalProfit(0);
-        }
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
+      );
+      if (!res.ok) throw new Error("Failed to fetch jobs");
+      const data = await res.json();
+  
+      if (Array.isArray(data.data)) {
+        setJobs(data.data);
+        setTotalCount(data.pagination.total);
+        setShowLoading(false);
+      } else {
+        console.error("Invalid API response", data);
         setJobs([]);
         setTotalCount(0);
-        setGrandTotalProfit(0);
+        setShowLoading(false);
       }
-    };
-    fetchData();
-  }, [
-    pagination.pageIndex,
-    pagination.pageSize,
-    selectedDepartments,
-    selectedStatuses,
-  ]);
-
-  // Initialize table
-  const table = useReactTable({
-    data: filteredJobs,
-    columns,
-    pageCount: Math.ceil(totalCount / pagination.pageSize),
-    manualPagination: true,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
-    state: {
-      pagination,
-      sorting,
-      columnFilters,
-      columnVisibility,
-      globalFilter,
-    },
-  });
-
-  // Apply mobile preset on mobile detection
-  useEffect(() => {
-    if (isMobile) {
-      const mobilePreset = presets.find((p) => p.name === "Mobile");
-      if (mobilePreset) {
-        const newVisibility: VisibilityState = {};
-        table.getAllLeafColumns().forEach((col) => {
-          newVisibility[col.id] = mobilePreset.columns.includes(col.id);
-        });
-        setColumnVisibility(newVisibility);
-      }
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      setJobs([]);
+      setTotalCount(0);
+      setShowLoading(false);
     }
-  }, [isMobile]);
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
+
+  useEffect(() => {
+    fetchData();
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, fetchData]);
+
+  // Toggle column visibility
+  const toggleColumnVisibility = (field: string) => {
+    setColumns(prevColumns => 
+      prevColumns.map(column => 
+        column.field === field ? { ...column, visible: !column.visible } : column
+      )
+    );
+  };
+
+  // Render column selector dropdown
+  const renderColumnSelector = () => {
+    return (
+      <DropDownButton
+        text="Columns"
+        themeColor={"base"}
+        style={{ marginBottom: '20px', marginLeft: '10px' }}
+        items={columns.map(column => ({
+          text: column.title,
+          selected: column.visible,
+          id: column.field
+        }))}
+        onItemClick={(e: DropDownButtonItemClickEvent) => {
+          toggleColumnVisibility(e.item.id);
+        }}
+      />
+    );
+  };
 
   return (
-    <div className="w-full max-w-full mx-auto space-y-4 text-sm">
-      <div className="text-xs text-muted-foreground">
-        Total rows: {totalCount} | Page{" "}
-        {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} |
-        Rows per page: {table.getState().pagination.pageSize}
+    <>
+      <div className="flex justify-start">
+        <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+          Reload Data
+        </Button>
+        {renderColumnSelector()}
       </div>
 
-      <div className="flex items-center justify-between">
-        <Input
+      {/* Search input */}
+      <div className="mb-4">
+        <input
+          type="text"
           placeholder="Search all columns..."
-          className="max-w-sm"
+          className="w-full md:max-w-sm p-2 border rounded"
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
         />
-
-        <div className="flex items-center gap-4">
-          {/* Department Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Department
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Select Departments</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="dept-all"
-                    checked={selectedDepartments.length === 0}
-                    onCheckedChange={() => setSelectedDepartments([])}
-                  />
-                  <Label className="text-sm font-normal" htmlFor="dept-all">
-                    All
-                  </Label>
-                </div>
-                {departments.map((dept) => (
-                  <div key={dept} className="flex items-center space-x-2 mt-1">
-                    <Checkbox
-                      id={`dept-${dept}`}
-                      checked={selectedDepartments.includes(dept)}
-                      onCheckedChange={() => handleDepartmentChange(dept)}
-                    />
-                    <Label
-                      className="text-sm font-normal"
-                      htmlFor={`dept-${dept}`}
-                    >
-                      {dept}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Status Filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Status
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuLabel>Select Statuses</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="px-2 py-1">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="status-all"
-                    checked={selectedStatuses.length === 0}
-                    onCheckedChange={() => setSelectedStatuses([])}
-                  />
-                  <Label className="text-sm font-normal" htmlFor="status-all">
-                    All
-                  </Label>
-                </div>
-                {statuses.map((status) => (
-                  <div
-                    key={status}
-                    className="flex items-center space-x-2 mt-1"
-                  >
-                    <Checkbox
-                      id={`status-${status}`}
-                      checked={selectedStatuses.includes(status)}
-                      onCheckedChange={() => handleStatusesChange(status)}
-                    />
-                    <Label
-                      className="text-sm font-normal"
-                      htmlFor={`status-${status}`}
-                    >
-                      {status}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Column Visibility */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Presets</DropdownMenuLabel>
-              <div className="flex flex-wrap gap-1 px-2">
-                {presets.map((preset) => (
-                  <Button
-                    key={preset.name}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => {
-                      const newVisibility: VisibilityState = {};
-                      table.getAllLeafColumns().forEach((col) => {
-                        newVisibility[col.id] = preset.columns.includes(col.id);
-                      });
-                      setColumnVisibility(newVisibility);
-                    }}
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {table
-                .getAllLeafColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="flex gap-6">
-            <div className="flex items-center">
-              <span className="text-sm">Page profit:</span>
-              <span className="ml-2 font-semibold text-green-700">
-                $
-                {totalProfitSum.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-sm">Grand total:</span>
-              <span className="ml-2 font-semibold text-blue-700">
-                $
-                {grandTotalProfit.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border w-full overflow-auto max-w-[calc(100vw-2rem)] text-sm">
-         <Table className="w-full">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
-                  const isSorted = header.column.getIsSorted();
+      {/* GRID */}
+      <div ref={gridRef} className="text-sm">
+        {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
 
-                  return (
-                    <TableHead
-                      key={header.id}
-                      onClick={
-                        canSort
-                          ? header.column.getToggleSortingHandler()
-                          : undefined
-                      }
-                      className={canSort ? "cursor-pointer select-none whitespace-nowrap px-2 py-2 text-xs" : ""}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                      {isSorted === "asc" && " 🔼"}
-                      {isSorted === "desc" && " 🔽"}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="whitespace-nowrap min-w-[80px] px-2 py-2 text-xs">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-xs"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            {">"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {">>"}
-          </Button>
-        </div>
-        <span className="flex items-center gap-1 text-sm">
-          <div>Page</div>
-          <strong>
-            {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </strong>
-        </span>
-        <Select
-          value={`${table.getState().pagination.pageSize}`}
-          onValueChange={(value) => {
-            table.setPageSize(Number(value));
+        <Grid 
+          data={jobs}
+          dataItemKey={DATA_ITEM_KEY}
+          style={{ 
+            height: "450px",
+            fontSize: "0.75rem"
           }}
+          autoProcessData={true}
+          sortable={{ mode: 'multiple' }}
+          pageable={{ 
+            pageSizes: true,
+            buttonCount: 5,
+            info: true,
+            type: "numeric",
+          }}
+          groupable={true}
+          selectable={false}
+          filterable={{
+            mode: "row",
+            operators: {
+              string: {
+                contains: "Contains",
+                eq: "Is equal to",
+                neq: "Is not equal to",
+              },
+              date: {
+                eq: "Is equal to",
+                gte: "Is after or equal to",
+                lte: "Is before or equal to",
+              },
+            },
+          }}
+          defaultTake={10}
+          defaultSkip={0}
         >
-          <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue placeholder={table.getState().pagination.pageSize} />
-          </SelectTrigger>
-          <SelectContent side="top">
-            {[10, 20, 30, 40, 50, 200, 1000].map((pageSize) => (
-              <SelectItem key={pageSize} value={`${pageSize}`}>
-                {pageSize}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          {columns.filter(c => c.visible).map(column => (
+            <Column
+              key={column.field}
+              field={column.field}
+              title={column.title}
+              width={column.width}
+              cells={column.cells || {
+                data: (props: GridCustomCellProps) => {
+                  const { dataItem, field } = props;
+                  
+                  if (!dataItem || !field) {
+                    return null;
+                  }
+
+                  return (
+                    <td style={{ fontSize: '0.75rem' }}>
+                      {dataItem[field as keyof IJobStatus]}
+                    </td>
+                  );
+                }
+              }}
+            />
+          ))}
+        </Grid>
       </div>
-    </div>
+      {/* END GRID */}
+
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of {Math.ceil(totalCount / pagination.pageSize)} | Rows per page: {pagination.pageSize}
+      </div>
+    </>
   );
 }
