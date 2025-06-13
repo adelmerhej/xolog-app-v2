@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import * as React from 'react';
@@ -92,6 +93,21 @@ export const RatingCell = (props: GridCustomCellProps) => {
     return (
         <td {...props.tdProps}>
             <Rating value={value === null ? '' : props.dataItem[field]} readonly={true} />
+        </td>
+    );
+};
+
+export const BudgetCell = (props: GridCustomCellProps) => {
+    if (!props.field) {
+        return null;
+    }
+    const value = props.dataItem[props.field];
+    if (props.rowType === 'groupHeader') {
+        return null;
+    }
+    return (
+        <td {...props.tdProps}>
+            {value ? `$${value.toFixed(2)}` : ''}
         </td>
     );
 };

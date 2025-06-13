@@ -11,9 +11,10 @@ interface StickyHeaderProps {
   onAskAI?: () => void;
   className?: string;
   children?: React.ReactNode;
+  searchForm?: React.ReactNode;
 }
 
-export function StickyHeader({ onAskAI, className, children }: StickyHeaderProps) {
+export function StickyHeader({ onAskAI, className, children, searchForm }: StickyHeaderProps) {
   return (
     <header
       className={cn(
@@ -42,7 +43,10 @@ export function StickyHeader({ onAskAI, className, children }: StickyHeaderProps
             Ask AI
           </Button>
         )}
-        {children}
+        <div className="flex items-center gap-4">
+          {searchForm}
+          {children}
+        </div>
       </div>
     </header>
   );

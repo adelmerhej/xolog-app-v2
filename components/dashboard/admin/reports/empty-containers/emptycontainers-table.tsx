@@ -1,13 +1,21 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Grid, GridColumn as Column, GridCustomCellProps } from "@progress/kendo-react-grid";
+import {
+  Grid,
+  GridColumn as Column,
+  GridCustomCellProps,
+} from "@progress/kendo-react-grid";
 import { createPortal } from "react-dom";
 import { Button } from "@progress/kendo-react-buttons";
-import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
+import {
+  DropDownButton,
+  DropDownButtonItemClickEvent,
+} from "@progress/kendo-react-buttons";
 import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
 
 const loadingPanelMarkup = (
@@ -29,13 +37,13 @@ const LoadingPanel = (props: { gridRef: any }) => {
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
-  if (!dateString) return '';
-  
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
+  if (!dateString) return "";
 
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
@@ -43,65 +51,196 @@ const formatDate = (dateString: string | Date | null | undefined): string => {
 
 // Define all possible columns
 const allColumns = [
-  { field: "OrderNo", title: "Order#", visible: false },
-  { field: "JobNo", title: "Job#", width: "100px", visible: true },
-  { field: "ReferenceNo", title: "Reference#", visible: false },
-  { 
-    field: "JobDate", 
-    title: "Job Date", 
+  {
+    field: "OrderNo",
+    title: "Order#",
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "JobNo",
+    title: "Job#",
+    width: "100px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "ReferenceNo",
+    title: "Reference#",
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "JobDate",
+    title: "Job Date",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.JobDate)}</td>;
-      }
-    }
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
   },
-  { field: "DepartmentName", title: "Department", visible: false },
-  { field: "CustomerName", title: "Customer", width: "150px", visible: true },
-  { 
-    field: "Ata", 
-    title: "ATA", 
+  {
+    field: "DepartmentName",
+    title: "Department",
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "CustomerName",
+    title: "Customer",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "Ata",
+    title: "ATA",
     width: "120px",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.Ata)}</td>;
-      }
-    }
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
   },
-  { 
-    field: "TejrimDate", 
-    title: "Tejrim Date", 
+  {
+    field: "TejrimDate",
+    title: "Tejrim Date",
     width: "120px",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.TejrimDate)}</td>;
-      }
-    }
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
   },
-  { field: "Mbol", title: "MBL", width: "150px", visible: true },
-  { 
-    field: "dtCntrToCnee", 
-    title: "Cntr To Cnee", 
+  {
+    field: "Mbol",
+    title: "MBL",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "dtCntrToCnee",
+    title: "Cntr To Cnee",
     width: "120px",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.dtCntrToCnee)}</td>;
-      }
-    }
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
   },
-  { field: "ContainerNo", title: "Container No", width: "120px", visible: true },
+  {
+    field: "ContainerNo",
+    title: "Container No",
+    width: "120px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
   { field: "CarrierName", title: "Carrier", width: "150px", visible: false },
   { field: "UserName", title: "User", width: "100px", visible: false },
-  { 
-    field: "Notes", 
-    title: "Notes", 
+  {
+    field: "Notes",
+    title: "Notes",
     width: "200px",
     visible: false,
     cells: {
@@ -109,14 +248,29 @@ const allColumns = [
         <td className="whitespace-normal min-w-[120px] max-w-[200px] line-clamp-2">
           {props.dataItem.Notes}
         </td>
-      )
-    }
+      ),
+    },
   },
-  { field: "ArrivalDays", title: "Arrival Days", width: "100px", visible: true },
+  {
+    field: "ArrivalDays",
+    title: "Arrival Days",
+    width: "100px",
+    visible: true,
+  },
   { field: "TejrimDays", title: "Tejrim Days", width: "100px", visible: true },
-  { field: "DiffCntrToCnee", title: "Cntr to Cnee", width: "120px", visible: true },
+  {
+    field: "DiffCntrToCnee",
+    title: "Cntr to Cnee",
+    width: "120px",
+    visible: true,
+  },
   { field: "Departure", title: "Departure", width: "120px", visible: false },
-  { field: "Destination", title: "Destination", width: "150px", visible: false },
+  {
+    field: "Destination",
+    title: "Destination",
+    width: "150px",
+    visible: false,
+  },
 ];
 
 export default function EmptyContainersComponent() {
@@ -141,18 +295,25 @@ export default function EmptyContainersComponent() {
       setIsMobile(mobile);
       if (mobile) {
         // Set mobile-friendly columns
-        setColumns(prevColumns => 
-          prevColumns.map(column => ({
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
             ...column,
-            visible: ["JobNo", "CustomerName", "ArrivalDays", "TejrimDays"].includes(column.field)
+            visible: [
+              "JobNo",
+              "CustomerName",
+              "ArrivalDays",
+              "TejrimDays",
+            ].includes(column.field),
           }))
         );
       } else {
         // Reset to default visible columns
-        setColumns(prevColumns => 
-          prevColumns.map(column => ({
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
             ...column,
-            visible: allColumns.find(c => c.field === column.field)?.visible || false
+            visible:
+              allColumns.find((c) => c.field === column.field)?.visible ||
+              false,
           }))
         );
       }
@@ -167,21 +328,21 @@ export default function EmptyContainersComponent() {
   const fetchData = useCallback(async () => {
     try {
       setShowLoading(true);
-  
+
       const res = await fetch(
         `/api/reports/admin/empty-container?page=${pagination.pageIndex + 1}&limit=${
           pagination.pageSize
         }&search=${globalFilter}`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
-  
+
       if (Array.isArray(data.data)) {
         setJobs(data.data);
         setTotalCount(data.pagination.total);
@@ -206,9 +367,11 @@ export default function EmptyContainersComponent() {
 
   // Toggle column visibility
   const toggleColumnVisibility = (field: string) => {
-    setColumns(prevColumns => 
-      prevColumns.map(column => 
-        column.field === field ? { ...column, visible: !column.visible } : column
+    setColumns((prevColumns) =>
+      prevColumns.map((column) =>
+        column.field === field
+          ? { ...column, visible: !column.visible }
+          : column
       )
     );
   };
@@ -219,11 +382,11 @@ export default function EmptyContainersComponent() {
       <DropDownButton
         text="Columns"
         themeColor={"base"}
-        style={{ marginBottom: '20px', marginLeft: '10px' }}
-        items={columns.map(column => ({
+        style={{ marginBottom: "20px", marginLeft: "10px" }}
+        items={columns.map((column) => ({
           text: column.title,
           selected: column.visible,
-          id: column.field
+          id: column.field,
         }))}
         onItemClick={(e: DropDownButtonItemClickEvent) => {
           toggleColumnVisibility(e.item.id);
@@ -256,16 +419,16 @@ export default function EmptyContainersComponent() {
       <div ref={gridRef} className="text-sm">
         {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
 
-        <Grid 
+        <Grid
           data={jobs}
           dataItemKey={DATA_ITEM_KEY}
-          style={{ 
+          style={{
             height: "450px",
-            fontSize: "0.75rem"
+            fontSize: "0.75rem",
           }}
           autoProcessData={true}
-          sortable={{ mode: 'multiple' }}
-          pageable={{ 
+          sortable={{ mode: "multiple" }}
+          pageable={{
             pageSizes: true,
             buttonCount: 5,
             info: true,
@@ -273,53 +436,45 @@ export default function EmptyContainersComponent() {
           }}
           groupable={true}
           selectable={false}
-          filterable={{
-            mode: "row",
-            operators: {
-              string: {
-                contains: "Contains",
-                eq: "Is equal to",
-                neq: "Is not equal to",
-              },
-              date: {
-                eq: "Is equal to",
-                gte: "Is after or equal to",
-                lte: "Is before or equal to",
-              },
-            },
-          }}
+          filterable={true}
           defaultTake={10}
           defaultSkip={0}
         >
-          {columns.filter(c => c.visible).map(column => (
-            <Column
-              key={column.field}
-              field={column.field}
-              title={column.title}
-              width={column.width}
-              cells={column.cells || {
-                data: (props: GridCustomCellProps) => {
-                  const { dataItem, field } = props;
-                  
-                  if (!dataItem || !field) {
-                    return null;
-                  }
+          {columns
+            .filter((c) => c.visible)
+            .map((column) => (
+              <Column
+                key={column.field}
+                field={column.field}
+                title={column.title}
+                width={column.width}
+                cells={
+                  column.cells || {
+                    data: (props: GridCustomCellProps) => {
+                      const { dataItem, field } = props;
 
-                  return (
-                    <td style={{ fontSize: '0.75rem' }}>
-                      {dataItem[field as keyof IEmptyContainer]}
-                    </td>
-                  );
+                      if (!dataItem || !field) {
+                        return null;
+                      }
+
+                      return (
+                        <td style={{ fontSize: "0.75rem" }}>
+                          {dataItem[field as keyof IEmptyContainer]}
+                        </td>
+                      );
+                    },
+                  }
                 }
-              }}
-            />
-          ))}
+              />
+            ))}
         </Grid>
       </div>
       {/* END GRID */}
 
       <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of {Math.ceil(totalCount / pagination.pageSize)} | Rows per page: {pagination.pageSize}
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+        {pagination.pageSize}
       </div>
     </>
   );

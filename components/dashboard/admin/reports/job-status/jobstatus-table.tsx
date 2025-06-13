@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
@@ -61,12 +60,62 @@ const allColumns = [
         const { dataItem } = props;
         return <td>{formatDate(dataItem.JobDate)}</td>;
       }
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
     }
   },  
-  { field: "JobNo", title: "Job#", width: "100px", visible: true },
-  { field: "ReferenceNo", title: "Reference#", visible: true },
+  { 
+    field: "JobNo", 
+    title: "Job#", 
+    width: "100px", 
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    }
+  },
+  { 
+    field: "ReferenceNo", 
+    title: "Reference#", 
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    }
+  },
 
-  { field: "CustomerName", title: "Customer", width: "150px", visible: true },
+  { 
+    field: "CustomerName", 
+    title: "Customer", 
+    width: "150px", 
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    }
+  },
   { 
     field: "PaymentDate", 
     title: "Payment Date", 
@@ -77,9 +126,31 @@ const allColumns = [
         const { dataItem } = props;
         return <td>{formatDate(dataItem.PaymentDate)}</td>;
       }
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
     }
   },
-  { field: "MemberOf", title: "Member Of", visible: true },  
+  { 
+    field: "MemberOf", 
+    title: "Member Of", 
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    }
+  },  
   { 
     field: "ATA", 
     title: "ATA", 
@@ -90,6 +161,15 @@ const allColumns = [
         const { dataItem } = props;
         return <td>{formatDate(dataItem.ATA)}</td>;
       }
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
     }
   },
   { 
@@ -102,6 +182,15 @@ const allColumns = [
         const { dataItem } = props;
         return <td>{formatDate(dataItem.ETA)}</td>;
       }
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
     }
   },  
   { 
@@ -114,9 +203,32 @@ const allColumns = [
         const { dataItem } = props;
         return <td>{formatDate(dataItem.Arrival)}</td>;
       }
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
     }
   },
-  { field: "StatusType", title: "Status", width: "100px", visible: true },
+  { 
+    field: "StatusType", 
+    title: "Status", 
+    width: "100px", 
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    }
+  },
   { 
     field: "TotalProfit", 
     title: "Profit", 
@@ -281,21 +393,7 @@ export default function JobStatusComponent() {
           }}
           groupable={true}
           selectable={false}
-          filterable={{
-            mode: "row",
-            operators: {
-              string: {
-                contains: "Contains",
-                eq: "Is equal to",
-                neq: "Is not equal to",
-              },
-              date: {
-                eq: "Is equal to",
-                gte: "Is after or equal to",
-                lte: "Is before or equal to",
-              },
-            },
-          }}
+          filterable={true}
           defaultTake={10}
           defaultSkip={0}
         >
