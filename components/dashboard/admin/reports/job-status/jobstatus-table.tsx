@@ -3,11 +3,18 @@
 "use client";
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Grid, GridColumn as Column, GridCustomCellProps } from "@progress/kendo-react-grid";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Grid,
+  GridColumn as Column,
+  GridCustomCellProps,
+} from "@progress/kendo-react-grid";
 import { createPortal } from "react-dom";
 import { Button } from "@progress/kendo-react-buttons";
-import { DropDownButton, DropDownButtonItemClickEvent } from "@progress/kendo-react-buttons";
+import {
+  DropDownButton,
+  DropDownButtonItemClickEvent,
+} from "@progress/kendo-react-buttons";
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
   TotalsCell,
@@ -35,15 +42,20 @@ const LoadingPanel = (props: { gridRef: any }) => {
     : loadingPanelMarkup;
 };
 
+interface PageState {
+  skip: number;
+  take: number;
+}
+
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
-  if (!dateString) return '';
-  
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
+  if (!dateString) return "";
 
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
 
   return `${day}/${month}/${year}`;
@@ -51,192 +63,79 @@ const formatDate = (dateString: string | Date | null | undefined): string => {
 
 // Define all possible columns
 const allColumns = [
-  { 
-    field: "JobDate", 
-    title: "Job Date", 
+  {
+    field: "JobDate",
+    title: "Job Date",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.JobDate)}</td>;
-      }
+      },
     },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
-      },
-    }
-  },  
-  { 
-    field: "JobNo", 
-    title: "Job#", 
-    width: "100px", 
-    visible: true,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    }
   },
-  { 
-    field: "ReferenceNo", 
-    title: "Reference#", 
-    visible: true,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    }
-  },
+  { field: "JobNo", title: "Job#", width: "100px", visible: true },
+  { field: "ReferenceNo", title: "Reference#", visible: true },
 
-  { 
-    field: "CustomerName", 
-    title: "Customer", 
-    width: "150px", 
-    visible: true,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    }
-  },
-  { 
-    field: "PaymentDate", 
-    title: "Payment Date", 
+  { field: "CustomerName", title: "Customer", width: "150px", visible: true },
+  {
+    field: "PaymentDate",
+    title: "Payment Date",
     width: "120px",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.PaymentDate)}</td>;
-      }
+      },
     },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
-      },
-    }
   },
-  { 
-    field: "MemberOf", 
-    title: "Member Of", 
-    visible: true,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    }
-  },  
-  { 
-    field: "ATA", 
-    title: "ATA", 
+  { field: "MemberOf", title: "Member Of", visible: true },
+  {
+    field: "ATA",
+    title: "ATA",
     width: "120px",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.ATA)}</td>;
-      }
-    },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
       },
-    }
+    },
   },
-  { 
-    field: "ETA", 
-    title: "ETA", 
+  {
+    field: "ETA",
+    title: "ETA",
     width: "120px",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.ETA)}</td>;
-      }
-    },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
       },
-    }
-  },  
-  { 
-    field: "Arrival", 
-    title: "Arrival", 
+    },
+  },
+  {
+    field: "Arrival",
+    title: "Arrival",
     width: "120px",
     visible: true,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
         return <td>{formatDate(dataItem.Arrival)}</td>;
-      }
+      },
     },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
-      },
-    }
   },
-  { 
-    field: "StatusType", 
-    title: "Status", 
-    width: "100px", 
-    visible: true,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    }
-  },
-  { 
-    field: "TotalProfit", 
-    title: "Profit", 
+  { field: "StatusType", title: "Status", width: "100px", visible: true },
+  {
+    field: "TotalProfit",
+    title: "Profit",
     visible: true,
     columnMenu: ColumnMenu,
     cells: { data: TotalsCell },
-    width: "150px"
-  }
+    width: "150px",
+  },
 ];
 
 export default function JobStatusComponent() {
@@ -251,6 +150,11 @@ export default function JobStatusComponent() {
   const [totalCount, setTotalCount] = useState(0);
   const [columns, setColumns] = useState(allColumns);
   const [isMobile, setIsMobile] = useState(false);
+  const [pageSizeValue, setPageSizeValue] = React.useState<
+    number | string | undefined
+  >();
+  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>("All");
 
   const DATA_ITEM_KEY = "id";
 
@@ -261,18 +165,25 @@ export default function JobStatusComponent() {
       setIsMobile(mobile);
       if (mobile) {
         // Set mobile-friendly columns
-        setColumns(prevColumns => 
-          prevColumns.map(column => ({
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
             ...column,
-            visible: ["JobNo", "CustomerName", "ArrivalDays", "TejrimDays"].includes(column.field)
+            visible: [
+              "JobNo",
+              "CustomerName",
+              "ArrivalDays",
+              "TejrimDays",
+            ].includes(column.field),
           }))
         );
       } else {
         // Reset to default visible columns
-        setColumns(prevColumns => 
-          prevColumns.map(column => ({
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
             ...column,
-            visible: allColumns.find(c => c.field === column.field)?.visible || false
+            visible:
+              allColumns.find((c) => c.field === column.field)?.visible ||
+              false,
           }))
         );
       }
@@ -287,36 +198,58 @@ export default function JobStatusComponent() {
   const fetchData = useCallback(async () => {
     try {
       setShowLoading(true);
-  
+      const status = statusFilter === "All" ? "" : statusFilter;
+
       const res = await fetch(
         `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${
           pagination.pageSize
         }&search=${globalFilter}`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
+
+      // const params = new URLSearchParams();
+      // params.set("page", pagination.pageIndex + 1);
+      // params.set("limit", pagination.pageSize);
+      // params.set("search", globalFilter);
+      // params.set("status", status);
+      // const res = await fetch(
+      //   `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${
+      //     pagination.pageSize
+      //   }&search=${globalFilter}`,
+      //   {
+      //     method: "GET",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //   }
+      // );
+
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
-  
+
       if (Array.isArray(data.data)) {
         setJobs(data.data);
         setTotalCount(data.pagination.total);
+        setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
         setShowLoading(false);
       } else {
         console.error("Invalid API response", data);
         setJobs([]);
         setTotalCount(0);
         setShowLoading(false);
+        setGrandTotalProfit(0);
       }
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setJobs([]);
       setTotalCount(0);
       setShowLoading(false);
+      setGrandTotalProfit(0);
     }
   }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
 
@@ -326,24 +259,30 @@ export default function JobStatusComponent() {
 
   // Toggle column visibility
   const toggleColumnVisibility = (field: string) => {
-    setColumns(prevColumns => 
-      prevColumns.map(column => 
-        column.field === field ? { ...column, visible: !column.visible } : column
+    setColumns((prevColumns) =>
+      prevColumns.map((column) =>
+        column.field === field
+          ? { ...column, visible: !column.visible }
+          : column
       )
     );
   };
-
+  // Toggle status visibility
+  const toggleStatusFilter = (status: string) => {
+    setStatusFilter(status);
+  };
+  
   // Render column selector dropdown
   const renderColumnSelector = () => {
     return (
       <DropDownButton
         text="Columns"
         themeColor={"base"}
-        style={{ marginBottom: '20px', marginLeft: '10px' }}
-        items={columns.map(column => ({
+        style={{ marginBottom: "20px", marginLeft: "10px" }}
+        items={columns.map((column) => ({
           text: column.title,
           selected: column.visible,
-          id: column.field
+          id: column.field,
         }))}
         onItemClick={(e: DropDownButtonItemClickEvent) => {
           toggleColumnVisibility(e.item.id);
@@ -352,81 +291,162 @@ export default function JobStatusComponent() {
     );
   };
 
+  // Render status selector dropdown
+  const renderStatusSelector = () => {
+    return (
+      <DropDownButton
+        text="Status"
+        themeColor={"base"}
+        style={{ marginBottom: "20px", marginLeft: "10px" }}
+        items={[  
+          { text: "All", value: "All" },
+          { text: "New  ", value: "New" },
+          { text: "FullPaid", value: "FullPaid" },
+          { text: "Delivered", value: "Delivered" },
+          { text: "Cancelled", value: "Cancelled" },
+        ]}
+        onItemClick={(e: DropDownButtonItemClickEvent) => {
+          toggleStatusFilter(e.item.value);
+        }}
+      />
+    );
+  };
+  //
+
+
+  // Filter the jobs based on status
+const filteredJobs = useMemo(() => {
+  if (statusFilter === "All") return jobs;
+  return jobs.filter(job => {
+    const jobStatus = job.StatusType;
+    switch (statusFilter) {
+      case "New":
+        return jobStatus === "New";
+      case "FullPaid":
+        return jobStatus === "FullPaid";
+      case "Delivered":
+        return jobStatus === "Delivered";
+      case "Cancelled":
+        return jobStatus === "Cancelled";
+      default:
+        return true;
+    }
+  });
+}, [jobs, statusFilter]);
+
+
+  //Calculate total profit
+  const totalProfitSum = useMemo(
+    () =>
+      filteredJobs.reduce(
+        (sum, job) =>
+          sum +
+          (typeof job.TotalProfit === "number"
+            ? job.TotalProfit
+            : Number(job.TotalProfit) || 0),
+        0
+      ),
+    [filteredJobs]
+  );
+
+
   return (
     <>
-      <div className="flex justify-start">
-        <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-          Reload Data
-        </Button>
-        {renderColumnSelector()}
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+        {pagination.pageSize}
       </div>
 
-      {/* Search input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search all columns..."
-          className="w-full md:max-w-sm p-2 border rounded"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        />
+      {/* Buttons */}
+      <div className="flex justify-between">
+        <div className="flex justify-start">
+          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+            Reload Data
+          </Button>
+          {renderColumnSelector()}
+          {renderStatusSelector()}
+        </div>
+        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+          <div className="flex items-center">
+            <span className="text-sm">Page profit:</span>
+            <span className="ml-2 font-semibold text-green-700">
+              $
+              {totalProfitSum.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm">Grand total:</span>
+            <span className="ml-2 font-semibold text-blue-700">
+              $
+              {grandTotalProfit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* GRID */}
       <div ref={gridRef} className="text-sm">
         {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
 
-        <Grid 
-          data={jobs}
+        <Grid
+          data={filteredJobs}
           dataItemKey={DATA_ITEM_KEY}
-          style={{ 
-            height: "450px",
-            fontSize: "0.75rem"
+          style={{
+            height: "650px",
+            fontSize: "0.75rem",
           }}
           autoProcessData={true}
-          sortable={{ mode: 'multiple' }}
-          pageable={{ 
-            pageSizes: true,
-            buttonCount: 5,
-            info: true,
-            type: "numeric",
-          }}
+          sortable={{ mode: "multiple" }}
           groupable={true}
           selectable={false}
           filterable={true}
-          defaultTake={10}
+          defaultTake={200}
           defaultSkip={0}
+          pageable={{
+            buttonCount: 4,
+            type: "numeric",
+            info: true,
+            pageSizes: [10, 50, 100, 200, 1000],
+            pageSizeValue: pageSizeValue,
+          }}
         >
-          {columns.filter(c => c.visible).map(column => (
-            <Column
-              key={column.field}
-              field={column.field}
-              title={column.title}
-              width={column.width}
-              cells={column.cells || {
-                data: (props: GridCustomCellProps) => {
-                  const { dataItem, field } = props;
-                  
-                  if (!dataItem || !field) {
-                    return null;
-                  }
+          {columns
+            .filter((c) => c.visible)
+            .map((column) => (
+              <Column
+                key={column.field}
+                field={column.field}
+                title={column.title}
+                width={column.width}
+                cells={
+                  column.cells || {
+                    data: (props: GridCustomCellProps) => {
+                      const { dataItem, field } = props;
 
-                  return (
-                    <td style={{ fontSize: '0.75rem' }}>
-                      {dataItem[field as keyof IJobStatus]}
-                    </td>
-                  );
+                      if (!dataItem || !field) {
+                        return null;
+                      }
+
+                      return (
+                        <td style={{ fontSize: "0.75rem" }}>
+                          {dataItem[field as keyof IJobStatus]}
+                        </td>
+                      );
+                    },
+                  }
                 }
-              }}
-            />
-          ))}
+              />
+            ))}
         </Grid>
       </div>
       {/* END GRID */}
-
-      <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of {Math.ceil(totalCount / pagination.pageSize)} | Rows per page: {pagination.pageSize}
-      </div>
     </>
   );
 }

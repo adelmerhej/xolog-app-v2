@@ -4,7 +4,9 @@
 
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { process } from "@progress/kendo-data-query";
+import { GridPageChangeEvent } from "@progress/kendo-react-grid";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Grid,
   GridColumn as Column,
@@ -17,6 +19,7 @@ import {
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
 import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
+import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -34,6 +37,15 @@ const LoadingPanel = (props: { gridRef: any }) => {
     ? createPortal(loadingPanelMarkup, gridContent)
     : loadingPanelMarkup;
 };
+
+//Pagination customize
+interface PageState {
+  skip: number;
+  take: number;
+}
+const initialDataState: PageState = { skip: 0, take: 10 };
+
+//Pagination customize
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -285,6 +297,13 @@ export default function EmptyContainersComponent() {
   const [totalCount, setTotalCount] = useState(0);
   const [columns, setColumns] = useState(allColumns);
   const [isMobile, setIsMobile] = useState(false);
+  const [page, setPage] = React.useState<PageState>(initialDataState);
+  const [pageSizeValue, setPageSizeValue] = React.useState<
+    number | string | undefined
+  >();
+  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
+
+  const data = process(jobs, { skip: page.skip, take: page.take });
 
   const DATA_ITEM_KEY = "id";
 
@@ -347,17 +366,20 @@ export default function EmptyContainersComponent() {
         setJobs(data.data);
         setTotalCount(data.pagination.total);
         setShowLoading(false);
+        setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
       } else {
         console.error("Invalid API response", data);
         setJobs([]);
         setTotalCount(0);
         setShowLoading(false);
+        setGrandTotalProfit(0);
       }
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setJobs([]);
       setTotalCount(0);
       setShowLoading(false);
+      setGrandTotalProfit(0);
     }
   }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
 
@@ -395,24 +417,71 @@ export default function EmptyContainersComponent() {
     );
   };
 
+  const pageChange = (event: GridPageChangeEvent) => {
+    const targetEvent = event.targetEvent as PagerTargetEvent;
+    const take = targetEvent.value === "All" ? 1000 : event.page.take;
+
+    if (targetEvent.value) {
+      setPageSizeValue(targetEvent.value);
+      if (targetEvent.value === "All") {
+        setTotalCount(jobs.length);
+      }
+    }
+    setPage({
+      ...event.page,
+      take,
+    });
+  };
+
+  //Calculate total profit
+  const totalProfitSum = useMemo(
+    () =>
+      jobs.reduce(
+        (sum, job) =>
+          sum + (typeof job.Ata === "number" ? job.Ata : Number(job.Ata) || 0),
+        0
+      ),
+    [jobs]
+  );
+
   return (
     <>
-      <div className="flex justify-start">
-        <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-          Reload Data
-        </Button>
-        {renderColumnSelector()}
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+        {pagination.pageSize}
       </div>
 
-      {/* Search input */}
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search all columns..."
-          className="w-full md:max-w-sm p-2 border rounded"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        />
+      {/* Buttons */}
+      <div className="flex justify-between">
+        <div className="flex justify-start">
+          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+            Reload Data
+          </Button>
+          {renderColumnSelector()}
+        </div>
+        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+          <div className="flex items-center">
+            <span className="text-sm">Page total:</span>
+            <span className="ml-2 font-semibold text-green-700">
+              $
+              {totalProfitSum.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm">Grand total:</span>
+            <span className="ml-2 font-semibold text-blue-700">
+              $
+              {grandTotalProfit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* GRID */}
@@ -423,22 +492,23 @@ export default function EmptyContainersComponent() {
           data={jobs}
           dataItemKey={DATA_ITEM_KEY}
           style={{
-            height: "450px",
+            height: "650px",
             fontSize: "0.75rem",
           }}
           autoProcessData={true}
           sortable={{ mode: "multiple" }}
-          pageable={{
-            pageSizes: true,
-            buttonCount: 5,
-            info: true,
-            type: "numeric",
-          }}
           groupable={true}
           selectable={false}
           filterable={true}
-          defaultTake={10}
+          defaultTake={200}
           defaultSkip={0}
+          pageable={{
+            buttonCount: 4,
+            type: "numeric",
+            info: true,
+            pageSizes: [10, 50, 100, 200, 1000],
+            pageSizeValue: pageSizeValue,
+          }}
         >
           {columns
             .filter((c) => c.visible)
@@ -470,12 +540,6 @@ export default function EmptyContainersComponent() {
         </Grid>
       </div>
       {/* END GRID */}
-
-      <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
-        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
-        {pagination.pageSize}
-      </div>
     </>
   );
 }

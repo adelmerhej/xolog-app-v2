@@ -4,7 +4,7 @@
 
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Grid, GridColumn as Column, GridCustomCellProps } from "@progress/kendo-react-grid";
 import { createPortal } from "react-dom";
 import { Button } from "@progress/kendo-react-buttons";
@@ -35,6 +35,11 @@ const LoadingPanel = (props: { gridRef: any }) => {
     ? createPortal(loadingPanelMarkup, gridContent)
     : loadingPanelMarkup;
 };
+
+interface PageState {
+  skip: number;
+  take: number;
+}
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -141,6 +146,8 @@ export default function ClientInvoiceComponent() {
   const [selectedJobsStatus, setSelectedJobsStatus] = useState<string[]>([]);
   const [invoiceFilter, setInvoiceFilter] = useState<string[]>([]);
   const [columns, setColumns] = useState(allColumns);
+  const [pageSizeValue, setPageSizeValue] = React.useState<number | string | undefined>();
+  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
 
   const DATA_ITEM_KEY = "id";
 
@@ -168,12 +175,14 @@ export default function ClientInvoiceComponent() {
         setTotalCount(data.pagination.total);
         setGrandTotal(data.pagination.grandTotalInvoices ?? 0);
         setShowLoading(false);
+        setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
       } else {
         console.error("Invalid API response", data);
         setJobs([]);
         setTotalCount(0);
         setGrandTotal(0);
         setShowLoading(false);
+        setGrandTotalProfit(0);
       }
     } catch (err) {
       console.error("Error fetching jobs:", err);
@@ -181,6 +190,7 @@ export default function ClientInvoiceComponent() {
       setTotalCount(0);
       setGrandTotal(0);
       setShowLoading(false);
+      setGrandTotalProfit(0);
     }
   }, [pagination.pageIndex, pagination.pageSize, invoiceFilter, selectedJobsStatus, globalFilter]);
 
@@ -216,58 +226,113 @@ export default function ClientInvoiceComponent() {
     );
   };
 
+  //Calculate total profit
+  const totalProfitSum = useMemo(
+    () =>
+      jobs.reduce(
+        (sum, job) =>
+          sum +
+          (typeof job.TotalInvoiceAmount === "number"
+            ? job.TotalInvoiceAmount
+            : Number(job.TotalInvoiceAmount) || 0),
+        0
+      ),
+    [jobs]
+  );
+
   return (
     <>
-      <div className="flex justify-start">
-        <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-          Reload Data
-        </Button>
-        {renderColumnSelector()}
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+        {pagination.pageSize}
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-between">
+        <div className="flex justify-start">
+          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+            Reload Data
+          </Button>
+          {renderColumnSelector()}
+        </div>
+        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+          <div className="flex items-center">
+            <span className="text-sm">Page total:</span>
+            <span className="ml-2 font-semibold text-green-700">
+              $
+              {totalProfitSum.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm">Grand total:</span>
+            <span className="ml-2 font-semibold text-blue-700">
+              $
+              {grandTotalProfit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* GRID */}
       <div ref={gridRef} className="text-sm">
         {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
 
-        <Grid 
+        <Grid
           data={jobs}
           dataItemKey={DATA_ITEM_KEY}
-          style={{ 
-            height: "450px",
-            fontSize: "0.75rem"
+          style={{
+            height: "650px",
+            fontSize: "0.75rem",
           }}
           autoProcessData={true}
-          sortable={{ mode: 'multiple' }}
-          pageable={{ pageSizes: true }}
+          sortable={{ mode: "multiple" }}
           groupable={true}
           selectable={false}
-          defaultTake={10}
+          filterable={true}
+          defaultTake={200}
           defaultSkip={0}
+          pageable={{
+            buttonCount: 4,
+            type: "numeric",
+            info: true,
+            pageSizes: [10, 50, 100, 200, 1000],
+            pageSizeValue: pageSizeValue,
+          }}
         >
-          {columns.filter(c => c.visible).map(column => (
-            <Column
-              key={column.field}
-              field={column.field}
-              title={column.title}
-              width={column.width}
-              columnMenu={column.columnMenu}
-              cells={column.cells || {
-                data: (props: GridCustomCellProps) => {
-                  const { dataItem, field } = props;
-                  
-                  if (!dataItem || !field) {
-                    return null;
-                  }
+          {columns
+            .filter((c) => c.visible)
+            .map((column) => (
+              <Column
+                key={column.field}
+                field={column.field}
+                title={column.title}
+                width={column.width}
+                cells={
+                  column.cells || {
+                    data: (props: GridCustomCellProps) => {
+                      const { dataItem, field } = props;
 
-                  return (
-                    <td style={{ fontSize: '0.75rem' }}>
-                      {dataItem[field as keyof IClientInvoice]}
-                    </td>
-                  );
+                      if (!dataItem || !field) {
+                        return null;
+                      }
+
+                      return (
+                        <td style={{ fontSize: "0.75rem" }}>
+                          {dataItem[field as keyof IClientInvoice]}
+                        </td>
+                      );
+                    },
+                  }
                 }
-              }}
-            />
-          ))}
+              />
+            ))}
         </Grid>
       </div>
       {/* END GRID */}

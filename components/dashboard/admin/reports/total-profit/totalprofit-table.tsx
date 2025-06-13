@@ -200,20 +200,6 @@ export default function TotalProfitComponent() {
     []
   );
 
-  //Calculate total profit
-  const totalProfitSum = useMemo(
-    () =>
-      jobs.reduce(
-        (sum, job) =>
-          sum +
-          (typeof job.TotalProfit === "number"
-            ? job.TotalProfit
-            : Number(job.TotalProfit) || 0),
-        0
-      ),
-    [jobs]
-  );
-
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
@@ -281,6 +267,20 @@ export default function TotalProfitComponent() {
       }
     }
   }, [isMobile]);
+
+    //Calculate total profit
+    const totalProfitSum = useMemo(
+      () =>
+        jobs.reduce(
+          (sum, job) =>
+            sum +
+            (typeof job.TotalProfit === "number"
+              ? job.TotalProfit
+              : Number(job.TotalProfit) || 0),
+          0
+        ),
+      [jobs]
+    );
 
   return (
     <div className="w-full max-w-full mx-auto space-y-4 text-sm"> {/* Reduced font size */}
