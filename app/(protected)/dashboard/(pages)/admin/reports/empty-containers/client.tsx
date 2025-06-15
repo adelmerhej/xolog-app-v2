@@ -30,7 +30,7 @@ export function EmptyContainerClient({
         </div>
       </StickyHeader>
       <main className="flex flex-1 flex-col gap-4 p-4">
-        <h1 className="text-2xl font-semibold mb-4">Total Profit</h1>
+        <h1 className="text-2xl font-semibold mb-4">Empty Containers</h1>
         <EmptyContainerComponent />
       </main>
     </>

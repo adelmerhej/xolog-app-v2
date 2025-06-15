@@ -1,499 +1,500 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { ITotalProfit } from "@/types/reports/ITotalProfit";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { GridPDFExport } from "@progress/kendo-react-pdf";
+import { ExcelExport } from "@progress/kendo-react-excel-export";
+import { process } from "@progress/kendo-data-query";
+import { GridPageChangeEvent } from "@progress/kendo-react-grid";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-  getPaginationRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-} from "@tanstack/react-table";
+  Grid,
+  GridColumn as Column,
+  GridCustomCellProps,
+} from "@progress/kendo-react-grid";
+import { createPortal } from "react-dom";
+import { Button } from "@progress/kendo-react-buttons";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropDownButton,
+  DropDownButtonItemClickEvent,
+} from "@progress/kendo-react-buttons";
+import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
+import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
+
+const loadingPanelMarkup = (
+  <div className="k-loading-mask">
+    <span className="k-loading-text">Loading</span>
+    <div className="k-loading-image" />
+    <div className="k-loading-color" />
+  </div>
+);
+
+const LoadingPanel = (props: { gridRef: any }) => {
+  const { gridRef } = props;
+  const gridContent =
+    gridRef.current && gridRef.current.querySelector(".k-grid-content");
+  return gridContent
+    ? createPortal(loadingPanelMarkup, gridContent)
+    : loadingPanelMarkup;
+};
+
+//Pagination customize
+interface PageState {
+  skip: number;
+  take: number;
+}
+const initialDataState: PageState = { skip: 0, take: 10 };
+
+//Pagination customize
+
+// Helper function to format dates
+const formatDate = (dateString: string | Date | null | undefined): string => {
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+};
+
+// Define all possible columns
+const allColumns = [
+  {
+    field: "JobNo",
+    title: "Job#",
+    width: "110px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "JobDate",
+    title: "Job Date",
+    width: "110px",
+    visible: true,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.JobDate)}</td>;
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "CustomerName",
+    title: "Customer Name#",
+    width: "250px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "ConsigneeName",
+    title: "Consignee Name",
+    width: "150px",
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "ReferenceNo",
+    title: "Reference#",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "StatusType",
+    title: "Status Type",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "ETA",
+    title: "ETA",
+    width: "120px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.Ata)}</td>;
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "ATA",
+    title: "ATA",
+    width: "120px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.Ata)}</td>;
+      },
+    },
+    filterable: {
+      operators: {
+        date: {
+          eq: "Is equal to",
+          gte: "Is after or equal to",
+          lte: "Is before or equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "CountryOfDeparture",
+    title: "Departure",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "Destination",
+    title: "Destination",
+    width: "150px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "TotalProfit",
+    title: "Total Profit",
+    width: "150px",
+    visible: true,
+  },
+];
+
+
+
+
 
 export default function TotalProfitComponent() {
-  const [jobs, setJobs] = useState<ITotalProfit[]>([]);
-  const [globalFilter, setGlobalFilter] = useState("");
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 200,
-  });
-  const [totalCount, setTotalCount] = useState(0);
-  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [isMobile, setIsMobile] = useState(false);
-
+  const gridRef = React.useRef<HTMLDivElement>(null);
+    const [jobs, setJobs] = useState<IEmptyContainer[]>([]);
+    const [showLoading, setShowLoading] = React.useState(false);
+    const [globalFilter, setGlobalFilter] = useState("");
+    const [pagination, setPagination] = useState({
+      pageIndex: 0,
+      pageSize: 200,
+    });
+    const [totalCount, setTotalCount] = useState(0);
+    const [columns, setColumns] = useState(allColumns);
+    const [isMobile, setIsMobile] = useState(false);
+    const [page, setPage] = React.useState<PageState>(initialDataState);
+    const [pageSizeValue, setPageSizeValue] = React.useState<
+      number | string | undefined
+    >();
+    const [grandTotalProfit, setGrandTotalProfit] = useState(0);
+  
+    const data = process(jobs, { skip: page.skip, take: page.take });
+  
+    const DATA_ITEM_KEY = "id";
+ // Handle mobile view
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      
-      // When switching from mobile to desktop, show all columns
-      if (!mobile && isMobile) {
-        const newVisibility: VisibilityState = {};
-        table.getAllLeafColumns().forEach((col) => {
-          newVisibility[col.id] = true;
-        });
-        setColumnVisibility(newVisibility);
+      if (mobile) {
+        // Set mobile-friendly columns
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
+            ...column,
+            visible: [
+              "JobNo",
+              "CustomerName",
+              "ArrivalDays",
+              "TejrimDays",
+            ].includes(column.field),
+          }))
+        );
+      } else {
+        // Reset to default visible columns
+        setColumns((prevColumns) =>
+          prevColumns.map((column) => ({
+            ...column,
+            visible:
+              allColumns.find((c) => c.field === column.field)?.visible ||
+              false,
+          }))
+        );
       }
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isMobile]);
-
-   // Presets for column visibility
-  const presets = [
-    {
-      name: "Default",
-      columns: [
-        "JobNo",
-        "JobDate",
-        "CustomerName",
-        "ConsigneeName",
-        "ReferenceNo",
-        "StatusType",
-        "ETA",
-        "ATA",
-        "CountryOfDeparture",
-        "Destination",
-        "TotalProfit",
-      ],
-    },
-    {
-      name: "Minimal",
-      columns: [
-        "JobNo",
-        "JobDate",
-        "CustomerName",
-        "StatusType",
-        "CountryOfDeparture",
-        "Destination",
-        "TotalProfit",
-      ],
-    },
-    {
-      name: "Mobile",
-      columns: [
-        "JobNo",
-        "CustomerName",
-        "StatusType",
-        "TotalProfit",
-      ],
-    },
-  ];
-
-  // Define columns
-  const columns = useMemo<ColumnDef<ITotalProfit>[]>(
-    () => [
-      {
-        accessorKey: "JobNo",
-        header: "Job No",
-      },
-      {
-        accessorKey: "JobDate",
-        header: "Job Date",
-        cell: ({ getValue }) => {
-          const date = new Date(getValue() as string);
-          return date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          });
-        },
-      },
-      {
-        accessorKey: "CustomerName",
-        header: "Customer",
-      },
-      {
-        accessorKey: "ConsigneeName",
-        header: "Consignee",
-      },
-      {
-        accessorKey: "ReferenceNo",
-        header: "Reference",
-      },
-      {
-        accessorKey: "StatusType",
-        header: "Status",
-      },
-      {
-        accessorKey: "ETA",
-        header: "ETA",
-        cell: ({ getValue }) => {
-          const value = getValue();
-          if (!value) return "";
-          const date = new Date(value as string);
-          return isNaN(date.getTime())
-            ? ""
-            : date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
-        },
-      },
-      {
-        accessorKey: "ATA",
-        header: "ATA",
-        cell: ({ getValue }) => {
-          const value = getValue();
-          if (!value) return "";
-          const date = new Date(value as string);
-          return isNaN(date.getTime())
-            ? ""
-            : date.toLocaleDateString("en-GB", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-              });
-        },
-      },
-      {
-        accessorKey: "CountryOfDeparture",
-        header: "Departure",
-      },
-      {
-        accessorKey: "Destination",
-        header: "Destination",
-      },
-      {
-        accessorKey: "TotalProfit",
-        header: "Profit",
-        cell: ({ getValue }) => `$${Number(getValue()).toFixed(2)}`,
-      },
-    ],
-    []
-  );
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(
-          `/api/reports/admin/total-profit?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch jobs");
-        const data = await res.json();
+  const fetchData = useCallback(async () => {
+    try {
+      setShowLoading(true);
 
-        if (Array.isArray(data.data)) {
-          setJobs(data.data);
-          setTotalCount(data.pagination.total);
-          setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
-        } else {
-          console.error("Invalid API response", data);
-          setJobs([]);
-          setTotalCount(0);
-          setGrandTotalProfit(0);
+      const res = await fetch(
+        `/api/reports/admin/total-profit?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
-      } catch (err) {
-        console.error("Error fetching jobs:", err);
+      );
+      if (!res.ok) throw new Error("Failed to fetch jobs");
+      const data = await res.json();
+
+      if (Array.isArray(data.data)) {
+        setJobs(data.data);
+        setTotalCount(data.pagination.total);
+        setShowLoading(false);
+        setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
+      } else {
+        console.error("Invalid API response", data);
         setJobs([]);
         setTotalCount(0);
+        setShowLoading(false);
         setGrandTotalProfit(0);
       }
-    };
-    fetchData();
-  }, [pagination.pageIndex, pagination.pageSize]);
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      setJobs([]);
+      setTotalCount(0);
+      setShowLoading(false);
+      setGrandTotalProfit(0);
+    }
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
 
-  // Initialize table
-  const table = useReactTable({
-    data: jobs,
-    columns,
-    pageCount: Math.ceil(totalCount / pagination.pageSize),
-    manualPagination: true,
-    onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
-    state: {
-      pagination,
-      sorting,
-      columnFilters,
-      columnVisibility,
-      globalFilter,
-    },
-  });
-
-  // Apply mobile preset on mobile detection
   useEffect(() => {
-    if (isMobile) {
-      const mobilePreset = presets.find(p => p.name === "Mobile");
-      if (mobilePreset) {
-        const newVisibility: VisibilityState = {};
-        table.getAllLeafColumns().forEach((col) => {
-          newVisibility[col.id] = mobilePreset.columns.includes(col.id);
-        });
-        setColumnVisibility(newVisibility);
+    fetchData();
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, fetchData]);
+
+  // Toggle column visibility
+  const toggleColumnVisibility = (field: string) => {
+    setColumns((prevColumns) =>
+      prevColumns.map((column) =>
+        column.field === field
+          ? { ...column, visible: !column.visible }
+          : column
+      )
+    );
+  };
+
+  // Render column selector dropdown
+  const renderColumnSelector = () => {
+    return (
+      <DropDownButton
+        text="Columns"
+        themeColor={"base"}
+        style={{ marginBottom: "20px", marginLeft: "10px" }}
+        items={columns.map((column) => ({
+          text: column.title,
+          selected: column.visible,
+          id: column.field,
+        }))}
+        onItemClick={(e: DropDownButtonItemClickEvent) => {
+          toggleColumnVisibility(e.item.id);
+        }}
+      />
+    );
+  };
+
+  const pageChange = (event: GridPageChangeEvent) => {
+    const targetEvent = event.targetEvent as PagerTargetEvent;
+    const take = targetEvent.value === "All" ? 1000 : event.page.take;
+
+    if (targetEvent.value) {
+      setPageSizeValue(targetEvent.value);
+      if (targetEvent.value === "All") {
+        setTotalCount(jobs.length);
       }
     }
-  }, [isMobile]);
+    setPage({
+      ...event.page,
+      take,
+    });
+  };
 
-    //Calculate total profit
-    const totalProfitSum = useMemo(
-      () =>
-        jobs.reduce(
-          (sum, job) =>
-            sum +
-            (typeof job.TotalProfit === "number"
-              ? job.TotalProfit
-              : Number(job.TotalProfit) || 0),
-          0
-        ),
-      [jobs]
-    );
+  //Calculate total profit
+  const totalProfitSum = useMemo(
+    () =>
+      jobs.reduce(
+        (sum, job) =>
+          sum + (typeof job.Ata === "number" ? job.Ata : Number(job.Ata) || 0),
+        0
+      ),
+    [jobs]
+  );
 
   return (
-    <div className="w-full max-w-full mx-auto space-y-4 text-sm"> {/* Reduced font size */}
-      <div className="text-xs text-muted-foreground"> {/* Smaller text for info */}
-        Total rows: {totalCount} | Page{" "}
-        {table.getState().pagination.pageIndex + 1} of {table.getPageCount()} |
-        Rows per page: {table.getState().pagination.pageSize}
+    <>
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+        {pagination.pageSize}
       </div>
 
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <Input
-          placeholder="Search all columns..."
-          className="w-full md:max-w-sm"
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-        />
-
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
-          {/* Column Visibility */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full md:w-auto">
-                Columns
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Presets</DropdownMenuLabel>
-              <div className="flex flex-wrap gap-1 px-2">
-                {presets.map((preset) => (
-                  <Button
-                    key={preset.name}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={() => {
-                      const newVisibility: VisibilityState = {};
-                      table.getAllLeafColumns().forEach((col) => {
-                        newVisibility[col.id] = preset.columns.includes(col.id);
-                      });
-                      setColumnVisibility(newVisibility);
-                    }}
-                  >
-                    {preset.name}
-                  </Button>
-                ))}
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel>Toggle Columns</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {table
-                .getAllLeafColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-            <div className="flex items-center">
-              <span className="text-sm">Page profit:</span>
-              <span className="ml-2 font-semibold text-green-700">
-                $
-                {totalProfitSum.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
-            <div className="flex items-center">
-              <span className="text-sm">Grand total:</span>
-              <span className="ml-2 font-semibold text-blue-700">
-                $
-                {grandTotalProfit.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-              </span>
-            </div>
+      {/* Buttons */}
+      <div className="flex justify-between">
+        <div className="flex justify-start">
+          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+            Reload Data
+          </Button>
+          {renderColumnSelector()}
+        </div>
+        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+          <div className="flex items-center">
+            <span className="text-sm">Page total:</span>
+            <span className="ml-2 font-semibold text-green-700">
+              $
+              {totalProfitSum.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-sm">Grand total:</span>
+            <span className="ml-2 font-semibold text-blue-700">
+              $
+              {grandTotalProfit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border w-full overflow-auto max-w-[calc(100vw-2rem)] text-sm"> 
-        <Table className="w-full">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      className="cursor-pointer select-none whitespace-nowrap px-2 py-2 text-xs"
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: " 🔼",
-                        desc: " 🔽",
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="whitespace-nowrap min-w-[80px] px-2 py-2 text-xs">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-xs"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* GRID */}
+      <div ref={gridRef} className="text-sm">
+        {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
 
-      {/* Pagination */}
-      <div className="flex flex-col md:flex-row items-center justify-between px-2 gap-4">
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {"<"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            {">"}
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {">>"}
-          </Button>
-        </div>
-        <span className="flex items-center gap-1 text-sm">
-          <div>Page</div>
-          <strong>
-            {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
-          </strong>
-        </span>
-        <Select
-          value={`${table.getState().pagination.pageSize}`}
-          onValueChange={(value) => {
-            table.setPageSize(Number(value));
+        <Grid
+          data={jobs}
+          dataItemKey={DATA_ITEM_KEY}
+          style={{
+            height: "1024px",
+            fontSize: "0.75rem",
+          }}
+          autoProcessData={true}
+          sortable={{ mode: "multiple" }}
+          groupable={true}
+          selectable={false}
+          filterable={true}
+          defaultTake={200}
+          defaultSkip={0}
+          pageable={{
+            buttonCount: 4,
+            type: "numeric",
+            info: true,
+            pageSizes: [10, 50, 100, 200, 1000],
+            pageSizeValue: pageSizeValue,
           }}
         >
-          <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue placeholder={table.getState().pagination.pageSize} />
-          </SelectTrigger>
-          <SelectContent side="top">
-            {[10, 20, 30, 40, 50, 200, 1000].map((pageSize) => (
-              <SelectItem key={pageSize} value={`${pageSize}`}>
-                {pageSize}
-              </SelectItem>
+          {columns
+            .filter((c) => c.visible)
+            .map((column) => (
+              <Column
+                key={column.field}
+                field={column.field}
+                title={column.title}
+                width={column.width}
+                cells={
+                  column.cells || {
+                    data: (props: GridCustomCellProps) => {
+                      const { dataItem, field } = props;
+
+                      if (!dataItem || !field) {
+                        return null;
+                      }
+
+                      return (
+                        <td style={{ fontSize: "0.75rem" }}>
+                          {dataItem[field as keyof IEmptyContainer]}
+                        </td>
+                      );
+                    },
+                  }
+                }
+              />
             ))}
-          </SelectContent>
-        </Select>
+        </Grid>
       </div>
-    </div>
+      {/* END GRID */}
+    </>
   );
 }

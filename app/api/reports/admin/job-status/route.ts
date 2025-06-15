@@ -27,6 +27,7 @@ import { JobStatusModel } from "@/models/reports/JobStatus";
 //   }
 // }
 
+
 function getDepartmentMapping(department: string) {
   switch (department) {
     case "Import":

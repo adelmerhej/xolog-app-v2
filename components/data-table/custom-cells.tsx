@@ -25,6 +25,22 @@ export const TotalsCell = (props: GridCustomCellProps) => {
     }
 };
 
+export const TotalProfitCell = (props: GridCustomCellProps) => {
+    const { dataItem } = props;
+    const value = dataItem.TotalProfit;
+    
+    return (
+      <td style={{ textAlign: 'right' }}>
+        {typeof value === 'number' 
+          ? `$${value.toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })}`
+          : value}
+      </td>
+    );
+};
+
 export const ColumnMenu = (props: GridColumnMenuProps) => {
     return (
         <div>

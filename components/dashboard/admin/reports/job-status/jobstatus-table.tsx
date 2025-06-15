@@ -15,6 +15,7 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
+import { DropDownList } from '@progress/kendo-react-dropdowns';
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
   TotalsCell,
@@ -23,7 +24,9 @@ import {
   ProgressCell,
   RatingCell,
   CountryCell,
+  TotalProfitCell,
 } from "@/components/data-table/custom-cells";
+
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -130,11 +133,20 @@ const allColumns = [
   { field: "StatusType", title: "Status", width: "100px", visible: true },
   {
     field: "TotalProfit",
-    title: "Profit",
+    title: "Total Profit",
     visible: true,
     columnMenu: ColumnMenu,
-    cells: { data: TotalsCell },
+    cells: { data: TotalProfitCell },
     width: "150px",
+    // Add footer cell if you want to show the sum at the bottom
+    // footerCell: () => (
+    //   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+    //     ${grandTotalProfit.toLocaleString(undefined, {
+    //       minimumFractionDigits: 2,
+    //       maximumFractionDigits: 2,
+    //     })}
+    //   </td>
+    // )
   },
 ];
 
@@ -154,7 +166,27 @@ export default function JobStatusComponent() {
     number | string | undefined
   >();
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("New");
+
+  // Pass grandTotalProfit to the TotalProfit column
+  const updatedColumns = useMemo(() => {
+    return columns.map((column) => {
+      if (column.field === "TotalProfit") {
+        return {
+          ...column,
+          footerCell: (props: any) => (
+            <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+              ${props.grandTotalProfit.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </td>
+          )
+        };
+      }
+      return column;
+    });
+  }, [columns, grandTotalProfit]);
 
   const DATA_ITEM_KEY = "id";
 
@@ -171,8 +203,8 @@ export default function JobStatusComponent() {
             visible: [
               "JobNo",
               "CustomerName",
-              "ArrivalDays",
-              "TejrimDays",
+              "StatusType",
+              "TotalProfit",
             ].includes(column.field),
           }))
         );
@@ -200,34 +232,18 @@ export default function JobStatusComponent() {
       setShowLoading(true);
       const status = statusFilter === "All" ? "" : statusFilter;
 
-      const res = await fetch(
-        `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${
-          pagination.pageSize
-        }&search=${globalFilter}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // Build the API URL with status if needed
+      let apiUrl = `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}&search=${globalFilter}`;
+      if (status) {
+        apiUrl += `&status=${encodeURIComponent(status)}`;
+      }
 
-      // const params = new URLSearchParams();
-      // params.set("page", pagination.pageIndex + 1);
-      // params.set("limit", pagination.pageSize);
-      // params.set("search", globalFilter);
-      // params.set("status", status);
-      // const res = await fetch(
-      //   `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${
-      //     pagination.pageSize
-      //   }&search=${globalFilter}`,
-      //   {
-      //     method: "GET",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //   }
-      // );
+      const res = await fetch(apiUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
@@ -251,11 +267,20 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter]);
 
   useEffect(() => {
     fetchData();
   }, [pagination.pageIndex, pagination.pageSize, globalFilter, fetchData]);
+
+  // Debug: Log jobs data to check TotalProfit
+  // useEffect(() => {
+  //   if (jobs && jobs.length > 0) {
+  //     console.log('Jobs data:', jobs.map(j => ({ JobNo: j.JobNo, TotalProfit: j.TotalProfit })));
+  //   } else {
+  //     console.log('No jobs data or empty jobs array');
+  //   }
+  // }, [jobs]);
 
   // Toggle column visibility
   const toggleColumnVisibility = (field: string) => {
@@ -292,23 +317,24 @@ export default function JobStatusComponent() {
   };
 
   // Render status selector dropdown
+  const statusOptions = [
+    { text: "All", value: "All" },
+    { text: "New", value: "New" },
+    { text: "FullPaid", value: "FullPaid" },
+    { text: "Delivered", value: "Delivered" },
+    { text: "Cancelled", value: "Cancelled" },
+  ];
   const renderStatusSelector = () => {
     return (
-      <DropDownButton
-        text="Status"
-        themeColor={"base"}
-        style={{ marginBottom: "20px", marginLeft: "10px" }}
-        items={[  
-          { text: "All", value: "All" },
-          { text: "New  ", value: "New" },
-          { text: "FullPaid", value: "FullPaid" },
-          { text: "Delivered", value: "Delivered" },
-          { text: "Cancelled", value: "Cancelled" },
-        ]}
-        onItemClick={(e: DropDownButtonItemClickEvent) => {
-          toggleStatusFilter(e.item.value);
-        }}
-      />
+      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 150 }}>
+        <DropDownList
+          data={statusOptions}
+          textField="text"
+          dataItemKey="value"
+          value={statusOptions.find(option => option.value === statusFilter)}
+          onChange={e => toggleStatusFilter(e.value.value)}
+        />
+      </div>
     );
   };
   //
@@ -323,7 +349,7 @@ const filteredJobs = useMemo(() => {
       case "New":
         return jobStatus === "New";
       case "FullPaid":
-        return jobStatus === "FullPaid";
+        return jobStatus === "New" && job.PendingInvoices === 0;
       case "Delivered":
         return jobStatus === "Delivered";
       case "Cancelled":
@@ -357,6 +383,12 @@ const filteredJobs = useMemo(() => {
         {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
         {pagination.pageSize}
       </div>
+      {/* <div className="text-xs text-muted-foreground">
+        Total Profit: ${totalProfitSum.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </div> */}
 
       {/* Buttons */}
       <div className="flex justify-between">
@@ -429,13 +461,11 @@ const filteredJobs = useMemo(() => {
                   column.cells || {
                     data: (props: GridCustomCellProps) => {
                       const { dataItem, field } = props;
-
                       if (!dataItem || !field) {
                         return null;
                       }
-
                       return (
-                        <td style={{ fontSize: "0.75rem" }}>
+                        <td style={{ fontSize: "0.75rem", padding: "4px 8px" }}>
                           {dataItem[field as keyof IJobStatus]}
                         </td>
                       );
