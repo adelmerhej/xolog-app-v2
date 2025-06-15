@@ -8,6 +8,7 @@ import {
   Grid,
   GridColumn as Column,
   GridCustomCellProps,
+  GridPageChangeEvent,
 } from "@progress/kendo-react-grid";
 import { createPortal } from "react-dom";
 import { Button } from "@progress/kendo-react-buttons";
@@ -27,6 +28,7 @@ import {
   CountryCell,
   TotalProfitCell,
 } from "@/components/data-table/custom-cells";
+import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -50,7 +52,7 @@ interface PageState {
   skip: number;
   take: number;
 }
-const initialDataState: PageState = { skip: 0, take: 10 };
+const initialDataState: PageState = { skip: 0, take: 200 };
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -167,13 +169,9 @@ export default function JobStatusComponent() {
   //   pageIndex: 0,
   //   pageSize: 200,
   // });
-  const [pageState, setPageState] = useState<PageState>({
-    skip: 0,
-    take: 200,
-  });
-  const [pageSizeValue, setPageSizeValue] = React.useState<
-    number | string | undefined
-  >();
+  const [pageState, setPageState] = React.useState<PageState>(initialDataState);
+  const [pageSizeValue, setPageSizeValue] = 
+        React.useState<number | string | undefined>();
 
   const [totalCount, setTotalCount] = useState(0);
   const [columns, setColumns] = useState(allColumns);
@@ -182,6 +180,22 @@ export default function JobStatusComponent() {
   const [statusFilter, setStatusFilter] = useState<string>("New");
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [fullPaidChecked, setFullPaidChecked] = useState(false);
+
+  
+  // Handle global filter change
+  const pageChange = (event: GridPageChangeEvent) => {
+      const targetEvent = event.targetEvent as PagerTargetEvent;
+      const take = targetEvent.value === 'All' ? filteredJobs.length : event.page.take;
+
+      if (targetEvent.value) {
+          setPageSizeValue(targetEvent.value);
+      }
+      setPageState({
+          ...event.page,
+          take
+      });
+  };
+
 
   // Pass grandTotalProfit to the TotalProfit column
   const updatedColumns = useMemo(() => {
@@ -525,18 +539,19 @@ export default function JobStatusComponent() {
             buttonCount: 4,
             type: "numeric",
             info: true,
-            pageSizes: [10, 50, 100, 200, 1000],
+            pageSizes: [10, 50, 100, 200, 1000, 'All'],
             pageSizeValue: pageSizeValue,
           }}
           skip={pageState.skip}
           take={pageState.take}
           total={totalCount}
-          onPageChange={(e) => {
-            setPageState({
-              skip: e.page.skip,
-              take: e.page.take,
-            });
-          }}
+          // onPageChange={(e) => {
+          //   setPageState({
+          //     skip: e.page.skip,
+          //     take: e.page.take,
+          //   });
+          // }}
+          onPageChange={pageChange}
         >
           {columns
             .filter((c) => c.visible)
