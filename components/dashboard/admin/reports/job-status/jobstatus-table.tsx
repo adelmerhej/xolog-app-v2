@@ -15,7 +15,7 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
-import { DropDownList } from '@progress/kendo-react-dropdowns';
+import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
   TotalsCell,
@@ -26,7 +26,6 @@ import {
   CountryCell,
   TotalProfitCell,
 } from "@/components/data-table/custom-cells";
-
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -167,6 +166,7 @@ export default function JobStatusComponent() {
   >();
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("New");
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
 
   // Pass grandTotalProfit to the TotalProfit column
   const updatedColumns = useMemo(() => {
@@ -175,13 +175,14 @@ export default function JobStatusComponent() {
         return {
           ...column,
           footerCell: (props: any) => (
-            <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-              ${props.grandTotalProfit.toLocaleString(undefined, {
+            <td style={{ textAlign: "right", fontWeight: "bold" }}>
+              $
+              {props.grandTotalProfit.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </td>
-          )
+          ),
         };
       }
       return column;
@@ -232,10 +233,15 @@ export default function JobStatusComponent() {
       setShowLoading(true);
       const status = statusFilter === "All" ? "" : statusFilter;
 
-      // Build the API URL with status if needed
+      // Build the API URL with status and departments if needed
       let apiUrl = `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}&search=${globalFilter}`;
       if (status) {
         apiUrl += `&status=${encodeURIComponent(status)}`;
+      }
+      if (selectedDepartments.length > 0) {
+        apiUrl += `&departments=${selectedDepartments
+          .map(encodeURIComponent)
+          .join(",")}`;
       }
 
       const res = await fetch(apiUrl, {
@@ -267,7 +273,7 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter]);
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter, selectedDepartments]);
 
   useEffect(() => {
     fetchData();
@@ -296,7 +302,7 @@ export default function JobStatusComponent() {
   const toggleStatusFilter = (status: string) => {
     setStatusFilter(status);
   };
-  
+
   // Render column selector dropdown
   const renderColumnSelector = () => {
     return (
@@ -331,35 +337,77 @@ export default function JobStatusComponent() {
           data={statusOptions}
           textField="text"
           dataItemKey="value"
-          value={statusOptions.find(option => option.value === statusFilter)}
-          onChange={e => toggleStatusFilter(e.value.value)}
+          value={statusOptions.find((option) => option.value === statusFilter)}
+          onChange={(e) => toggleStatusFilter(e.value.value)}
         />
       </div>
     );
   };
   //
 
+  const handleDepartmentChange = (dept: string) => {
+    if (dept === "All") {
+      setSelectedDepartments(["All"]);
+    } else {
+      setSelectedDepartments((prev) => {
+        const filtered = prev.filter((d) => d !== "All");
+        const isSelected = filtered.includes(dept);
+        if (isSelected) {
+          return filtered.filter((d) => d !== dept);
+        } else {
+          return [...filtered, dept];
+        }
+      });
+    }
+  };
+
+  // Render departments selector dropdown
+  const renderDepartmentsSelector = () => {
+    const departments = [
+      "All",
+      "Import",
+      "Export",
+      "Clearance",
+      "Land Freight",
+      "Sea Cross",
+    ];
+
+    return (
+      <DropDownButton
+        text="Departments"
+        themeColor={"base"}
+        style={{ marginBottom: "20px", marginLeft: "10px" }}
+        items={departments.map((dept) => ({
+          text: dept,
+          selected: selectedDepartments.includes(dept),
+          id: dept,
+        }))}
+        onItemClick={(e: DropDownButtonItemClickEvent) => {
+          handleDepartmentChange(e.item.id);
+        }}
+      />
+    );
+  };
 
   // Filter the jobs based on status
-const filteredJobs = useMemo(() => {
-  if (statusFilter === "All") return jobs;
-  return jobs.filter(job => {
-    const jobStatus = job.StatusType;
-    switch (statusFilter) {
-      case "New":
-        return jobStatus === "New";
-      case "FullPaid":
-        return jobStatus === "New" && job.PendingInvoices === 0;
-      case "Delivered":
-        return jobStatus === "Delivered";
-      case "Cancelled":
-        return jobStatus === "Cancelled";
-      default:
-        return true;
-    }
-  });
-}, [jobs, statusFilter]);
-
+  const filteredJobs = useMemo(() => {
+    if (statusFilter === "All") return jobs;
+    return jobs.filter((job) => {
+      const jobStatus = job.StatusType;
+      switch (statusFilter) {
+        case "New":
+          return jobStatus === "New";
+        case "FullPaid":
+          return jobStatus === "New" && job.PendingInvoices === 0;
+        case "Delivered":
+          return jobStatus === "Delivered";
+        case "Cancelled":
+          return jobStatus === "Cancelled";
+        default:
+          return true;
+      }
+    });
+  }, [jobs, statusFilter]);
 
   //Calculate total profit
   const totalProfitSum = useMemo(
@@ -374,7 +422,6 @@ const filteredJobs = useMemo(() => {
       ),
     [filteredJobs]
   );
-
 
   return (
     <>
@@ -397,6 +444,7 @@ const filteredJobs = useMemo(() => {
             Reload Data
           </Button>
           {renderColumnSelector()}
+          {renderDepartmentsSelector()}
           {renderStatusSelector()}
         </div>
         <div className="flex flex-col md:flex-row gap-2 md:gap-6">

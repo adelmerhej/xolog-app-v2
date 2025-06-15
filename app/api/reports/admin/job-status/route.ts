@@ -80,6 +80,10 @@ export async function GET(request: NextRequest) {
 
     if (statuses.length > 0) {
       query.StatusType = { $in: statuses };
+      // If filtering for FullPaid, add PendingInvoices > 0
+      if (statuses.includes("FullPaid")) {
+        query.PendingInvoices = { $gt: 0 };
+      }
     }
     
     if (departments.length > 0) {

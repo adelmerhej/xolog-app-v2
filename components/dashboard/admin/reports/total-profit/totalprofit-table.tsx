@@ -239,32 +239,28 @@ const allColumns = [
   },
 ];
 
-
-
-
-
 export default function TotalProfitComponent() {
   const gridRef = React.useRef<HTMLDivElement>(null);
-    const [jobs, setJobs] = useState<IEmptyContainer[]>([]);
-    const [showLoading, setShowLoading] = React.useState(false);
-    const [globalFilter, setGlobalFilter] = useState("");
-    const [pagination, setPagination] = useState({
-      pageIndex: 0,
-      pageSize: 200,
-    });
-    const [totalCount, setTotalCount] = useState(0);
-    const [columns, setColumns] = useState(allColumns);
-    const [isMobile, setIsMobile] = useState(false);
-    const [page, setPage] = React.useState<PageState>(initialDataState);
-    const [pageSizeValue, setPageSizeValue] = React.useState<
-      number | string | undefined
-    >();
-    const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  
-    const data = process(jobs, { skip: page.skip, take: page.take });
-  
-    const DATA_ITEM_KEY = "id";
- // Handle mobile view
+  const [jobs, setJobs] = useState<IEmptyContainer[]>([]);
+  const [showLoading, setShowLoading] = React.useState(false);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 200,
+  });
+  const [totalCount, setTotalCount] = useState(0);
+  const [columns, setColumns] = useState(allColumns);
+  const [isMobile, setIsMobile] = useState(false);
+  const [page, setPage] = React.useState<PageState>(initialDataState);
+  const [pageSizeValue, setPageSizeValue] = React.useState<
+    number | string | undefined
+  >();
+  const [grandTotalProfit, setGrandTotalProfit] = useState(0);
+
+  const data = process(jobs, { skip: page.skip, take: page.take });
+
+  const DATA_ITEM_KEY = "id";
+  // Handle mobile view
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
