@@ -15,6 +15,7 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
+import { Checkbox } from '@progress/kendo-react-inputs';
 import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
@@ -130,6 +131,7 @@ const allColumns = [
     },
   },
   { field: "StatusType", title: "Status", width: "100px", visible: true },
+  { field: "PendingInvoices", title: "Pending Invoices", width: "100px", visible: false },
   {
     field: "TotalProfit",
     title: "Total Profit",
@@ -167,6 +169,7 @@ export default function JobStatusComponent() {
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("New");
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [fullPaidChecked, setFullPaidChecked] = useState(false);
 
   // Pass grandTotalProfit to the TotalProfit column
   const updatedColumns = useMemo(() => {
@@ -243,6 +246,9 @@ export default function JobStatusComponent() {
           .map(encodeURIComponent)
           .join(",")}`;
       }
+      if (fullPaidChecked) {
+        apiUrl += `&fullpaid=true`;
+      }
 
       const res = await fetch(apiUrl, {
         method: "GET",
@@ -273,7 +279,7 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter, selectedDepartments]);
+  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -326,7 +332,6 @@ export default function JobStatusComponent() {
   const statusOptions = [
     { text: "All", value: "All" },
     { text: "New", value: "New" },
-    { text: "FullPaid", value: "FullPaid" },
     { text: "Delivered", value: "Delivered" },
     { text: "Cancelled", value: "Cancelled" },
   ];
@@ -339,6 +344,19 @@ export default function JobStatusComponent() {
           dataItemKey="value"
           value={statusOptions.find((option) => option.value === statusFilter)}
           onChange={(e) => toggleStatusFilter(e.value.value)}
+        />
+      </div>
+    );
+  };
+  //
+
+    const renderCheckFullpaidSelector = () => {
+    return (
+      <div style={{ marginBottom: "20px", marginLeft: "10px" }}>
+        <Checkbox
+          label="Show Full Paid Only"
+          checked={fullPaidChecked}
+          onChange={handleFullPaidChange}
         />
       </div>
     );
@@ -423,6 +441,10 @@ export default function JobStatusComponent() {
     [filteredJobs]
   );
 
+  const handleFullPaidChange = (event: any) => {
+    setFullPaidChecked(event.value);
+  };
+
   return (
     <>
       <div className="text-xs text-muted-foreground mt-2">
@@ -446,6 +468,8 @@ export default function JobStatusComponent() {
           {renderColumnSelector()}
           {renderDepartmentsSelector()}
           {renderStatusSelector()}
+          {renderCheckFullpaidSelector()} 
+
         </div>
         <div className="flex flex-col md:flex-row gap-2 md:gap-6">
           <div className="flex items-center">
