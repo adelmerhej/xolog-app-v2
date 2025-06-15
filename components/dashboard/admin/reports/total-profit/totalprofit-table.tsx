@@ -5,7 +5,6 @@
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
 import { process } from "@progress/kendo-data-query";
-import { GridPageChangeEvent } from "@progress/kendo-react-grid";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Grid,
@@ -18,8 +17,8 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
-import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
-import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
+import { ColumnMenu, TotalProfitCell } from "@/components/data-table/custom-cells";
+import { ITotalProfit } from "@/types/reports/ITotalProfit";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -234,14 +233,25 @@ const allColumns = [
   {
     field: "TotalProfit",
     title: "Total Profit",
-    width: "150px",
     visible: true,
+    columnMenu: ColumnMenu,
+    cells: { data: TotalProfitCell },
+    width: "100px",
+    // Add footer cell if you want to show the sum at the bottom
+    // footerCell: () => (
+    //   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+    //     ${grandTotalProfit.toLocaleString(undefined, {
+    //       minimumFractionDigits: 2,
+    //       maximumFractionDigits: 2,
+    //     })}
+    //   </td>
+    // )
   },
 ];
 
 export default function TotalProfitComponent() {
   const gridRef = React.useRef<HTMLDivElement>(null);
-  const [jobs, setJobs] = useState<IEmptyContainer[]>([]);
+  const [jobs, setJobs] = useState<ITotalProfit[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState({
@@ -260,6 +270,7 @@ export default function TotalProfitComponent() {
   const data = process(jobs, { skip: page.skip, take: page.take });
 
   const DATA_ITEM_KEY = "id";
+
   // Handle mobile view
   useEffect(() => {
     const handleResize = () => {
@@ -302,7 +313,10 @@ export default function TotalProfitComponent() {
       setShowLoading(true);
 
       const res = await fetch(
-        `/api/reports/admin/total-profit?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}`,
+        `/api/reports/admin/total-profit?
+        page=${pagination.pageIndex + 1}
+        &limit=${pagination.pageSize}
+        &search=${globalFilter}`,
         {
           method: "GET",
           headers: {
@@ -368,28 +382,15 @@ export default function TotalProfitComponent() {
     );
   };
 
-  const pageChange = (event: GridPageChangeEvent) => {
-    const targetEvent = event.targetEvent as PagerTargetEvent;
-    const take = targetEvent.value === "All" ? 1000 : event.page.take;
-
-    if (targetEvent.value) {
-      setPageSizeValue(targetEvent.value);
-      if (targetEvent.value === "All") {
-        setTotalCount(jobs.length);
-      }
-    }
-    setPage({
-      ...event.page,
-      take,
-    });
-  };
-
   //Calculate total profit
   const totalProfitSum = useMemo(
     () =>
       jobs.reduce(
         (sum, job) =>
-          sum + (typeof job.Ata === "number" ? job.Ata : Number(job.Ata) || 0),
+          sum +
+          (typeof job.TotalProfit === "number"
+            ? job.TotalProfit
+            : Number(job.TotalProfit) || 0),
         0
       ),
     [jobs]
@@ -443,7 +444,7 @@ export default function TotalProfitComponent() {
           data={jobs}
           dataItemKey={DATA_ITEM_KEY}
           style={{
-            height: "1024px",
+            height: "650px",
             fontSize: "0.75rem",
           }}
           autoProcessData={true}
@@ -459,7 +460,7 @@ export default function TotalProfitComponent() {
             info: true,
             pageSizes: [10, 50, 100, 200, 1000],
             pageSizeValue: pageSizeValue,
-          }}
+          }}     
         >
           {columns
             .filter((c) => c.visible)
@@ -480,7 +481,7 @@ export default function TotalProfitComponent() {
 
                       return (
                         <td style={{ fontSize: "0.75rem" }}>
-                          {dataItem[field as keyof IEmptyContainer]}
+                          {dataItem[field as keyof ITotalProfit]}
                         </td>
                       );
                     },

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
@@ -68,9 +69,15 @@ export async function GET(request: NextRequest) {
     
     const searchParams = request.nextUrl.searchParams;
     const page = Number(searchParams.get('page')) || 1;
-    const limit = Number(searchParams.get('limit')) || 10;
+    let limit = Number(searchParams.get('limit'));
+    if (!limit || limit === 0) {
+      limit = 0; // 0 means no limit in mongoose
+    }
     const departments = searchParams.get('departments')?.split(',').filter(Boolean) || [];
-    const statuses = searchParams.get('status')?.split(',').filter(Boolean) || [];
+    const statuses = searchParams.get('status')?.trim()?.split(',').filter(Boolean) || [];
+    const search = searchParams.get('search')?.trim() || '';
+    const fullpaid = searchParams.get('fullpaid');
+
     // Get date filters
     // const dateFrom = searchParams.get('dateFrom');
     // const dateTo = searchParams.get('dateTo');
@@ -113,15 +120,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Add filter for fullpaid param
-    const fullpaid = searchParams.get('fullpaid');
     if (fullpaid === 'true') {
       query.PendingInvoices = 0;
     }
 
-    const totalProfits = await JobStatusModel.find(query)
-      .sort({ JobDate: 1 }) 
-      .skip((page - 1) * limit)
-      .limit(limit);
+    const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
+    if (limit > 0) {
+      totalProfitsQuery.skip((page - 1) * limit).limit(limit);
+    }
+    const totalProfits = await totalProfitsQuery;
 
     const total = await JobStatusModel.countDocuments(query);
     const grandTotalAgg = await JobStatusModel.aggregate([
@@ -130,6 +137,8 @@ export async function GET(request: NextRequest) {
     ]);
     const grandTotalProfit = grandTotalAgg[0]?.total || 0;
     
+    console.log("Total Profits:", query);
+
     if (totalProfits.length === 0) {
       return NextResponse.json({
         success: false,
@@ -155,6 +164,7 @@ export async function GET(request: NextRequest) {
         grandTotalProfit,
       },
     });
+
   } catch (error) {
     console.error("Error fetching total profits:", error);
     return NextResponse.json(

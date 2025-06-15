@@ -15,7 +15,7 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
-import { Checkbox } from '@progress/kendo-react-inputs';
+import { Checkbox } from "@progress/kendo-react-inputs";
 import { DropDownList } from "@progress/kendo-react-dropdowns";
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
@@ -45,10 +45,12 @@ const LoadingPanel = (props: { gridRef: any }) => {
     : loadingPanelMarkup;
 };
 
+//Pagination customize
 interface PageState {
   skip: number;
   take: number;
 }
+const initialDataState: PageState = { skip: 0, take: 10 };
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -131,14 +133,19 @@ const allColumns = [
     },
   },
   { field: "StatusType", title: "Status", width: "100px", visible: true },
-  { field: "PendingInvoices", title: "Pending Invoices", width: "100px", visible: false },
+  {
+    field: "PendingInvoices",
+    title: "Pending Invoices",
+    width: "150px",
+    visible: false,
+  },
   {
     field: "TotalProfit",
     title: "Total Profit",
     visible: true,
     columnMenu: ColumnMenu,
     cells: { data: TotalProfitCell },
-    width: "150px",
+    width: "100px",
     // Add footer cell if you want to show the sum at the bottom
     // footerCell: () => (
     //   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
@@ -156,16 +163,21 @@ export default function JobStatusComponent() {
   const [jobs, setJobs] = useState<IJobStatus[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 200,
+  // const [pagination, setPagination] = useState({
+  //   pageIndex: 0,
+  //   pageSize: 200,
+  // });
+  const [pageState, setPageState] = useState<PageState>({
+    skip: 0,
+    take: 200,
   });
-  const [totalCount, setTotalCount] = useState(0);
-  const [columns, setColumns] = useState(allColumns);
-  const [isMobile, setIsMobile] = useState(false);
   const [pageSizeValue, setPageSizeValue] = React.useState<
     number | string | undefined
   >();
+
+  const [totalCount, setTotalCount] = useState(0);
+  const [columns, setColumns] = useState(allColumns);
+  const [isMobile, setIsMobile] = useState(false);
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("New");
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -190,7 +202,7 @@ export default function JobStatusComponent() {
       }
       return column;
     });
-  }, [columns, grandTotalProfit]);
+  }, [columns]);
 
   const DATA_ITEM_KEY = "id";
 
@@ -236,26 +248,20 @@ export default function JobStatusComponent() {
       setShowLoading(true);
       const status = statusFilter === "All" ? "" : statusFilter;
 
-      // Build the API URL with status and departments if needed
-      let apiUrl = `/api/reports/admin/job-status?page=${pagination.pageIndex + 1}&limit=${pagination.pageSize}&search=${globalFilter}`;
-      if (status) {
-        apiUrl += `&status=${encodeURIComponent(status)}`;
-      }
-      if (selectedDepartments.length > 0) {
-        apiUrl += `&departments=${selectedDepartments
-          .map(encodeURIComponent)
-          .join(",")}`;
-      }
-      if (fullPaidChecked) {
-        apiUrl += `&fullpaid=true`;
-      }
-
-      const res = await fetch(apiUrl, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `/api/reports/admin/job-status?
+        page=${Math.floor(pageState.skip / pageState.take) + 1}
+        &search=${globalFilter}
+        &status=${encodeURIComponent(status)}
+        &departments=${selectedDepartments.map(encodeURIComponent).join(",")}
+          &fullpaid=${fullPaidChecked ? "true" : "false"}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
@@ -279,20 +285,11 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
+  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter, fetchData]);
-
-  // Debug: Log jobs data to check TotalProfit
-  // useEffect(() => {
-  //   if (jobs && jobs.length > 0) {
-  //     console.log('Jobs data:', jobs.map(j => ({ JobNo: j.JobNo, TotalProfit: j.TotalProfit })));
-  //   } else {
-  //     console.log('No jobs data or empty jobs array');
-  //   }
-  // }, [jobs]);
+  }, [globalFilter, fetchData]);
 
   // Toggle column visibility
   const toggleColumnVisibility = (field: string) => {
@@ -350,7 +347,7 @@ export default function JobStatusComponent() {
   };
   //
 
-    const renderCheckFullpaidSelector = () => {
+  const renderCheckFullpaidSelector = () => {
     return (
       <div style={{ marginBottom: "20px", marginLeft: "10px" }}>
         <Checkbox
@@ -445,19 +442,31 @@ export default function JobStatusComponent() {
     setFullPaidChecked(event.value);
   };
 
+  useEffect(() => {
+    setPageState((prev) => ({ ...prev, skip: 0 }));
+    fetchData();
+  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
+
+  console.log("Pagination:", {
+    skip: pageState.skip,
+    take: pageState.take,
+    total: totalCount,
+  });
+
   return (
     <>
-      <div className="text-xs text-muted-foreground mt-2">
+      {/* <div className="text-xs text-muted-foreground mt-2">
         Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
         {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
         {pagination.pageSize}
-      </div>
-      {/* <div className="text-xs text-muted-foreground">
-        Total Profit: ${totalProfitSum.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}
       </div> */}
+
+      <div className="text-xs text-muted-foreground mt-2">
+        Total rows: {totalCount} | Page{" "}
+        {Math.ceil(pageState.skip / pageState.take) + 1} of{" "}
+        {Math.ceil(totalCount / pageState.take)} | Rows per page:{" "}
+        {pageState.take}
+      </div>
 
       {/* Buttons */}
       <div className="flex justify-between">
@@ -468,8 +477,7 @@ export default function JobStatusComponent() {
           {renderColumnSelector()}
           {renderDepartmentsSelector()}
           {renderStatusSelector()}
-          {renderCheckFullpaidSelector()} 
-
+          {renderCheckFullpaidSelector()}
         </div>
         <div className="flex flex-col md:flex-row gap-2 md:gap-6">
           <div className="flex items-center">
@@ -520,6 +528,15 @@ export default function JobStatusComponent() {
             pageSizes: [10, 50, 100, 200, 1000],
             pageSizeValue: pageSizeValue,
           }}
+          skip={pageState.skip}
+          take={pageState.take}
+          total={totalCount}
+          onPageChange={(e) => {
+            setPageState({
+              skip: e.page.skip,
+              take: e.page.take,
+            });
+          }}
         >
           {columns
             .filter((c) => c.visible)
@@ -533,9 +550,11 @@ export default function JobStatusComponent() {
                   column.cells || {
                     data: (props: GridCustomCellProps) => {
                       const { dataItem, field } = props;
+
                       if (!dataItem || !field) {
                         return null;
                       }
+
                       return (
                         <td style={{ fontSize: "0.75rem", padding: "4px 8px" }}>
                           {dataItem[field as keyof IJobStatus]}

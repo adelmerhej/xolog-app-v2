@@ -5,7 +5,6 @@
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
 import { process } from "@progress/kendo-data-query";
-import { GridPageChangeEvent } from "@progress/kendo-react-grid";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Grid,
@@ -19,7 +18,6 @@ import {
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
 import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
-import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -44,8 +42,6 @@ interface PageState {
   take: number;
 }
 const initialDataState: PageState = { skip: 0, take: 10 };
-
-//Pagination customize
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -349,9 +345,10 @@ export default function EmptyContainersComponent() {
       setShowLoading(true);
 
       const res = await fetch(
-        `/api/reports/admin/empty-container?page=${pagination.pageIndex + 1}&limit=${
-          pagination.pageSize
-        }&search=${globalFilter}`,
+        `/api/reports/admin/empty-container?
+        page=${pagination.pageIndex + 1}
+        &limit=${pagination.pageSize}
+        &search=${globalFilter}`,
         {
           method: "GET",
           headers: {
@@ -417,28 +414,15 @@ export default function EmptyContainersComponent() {
     );
   };
 
-  const pageChange = (event: GridPageChangeEvent) => {
-    const targetEvent = event.targetEvent as PagerTargetEvent;
-    const take = targetEvent.value === "All" ? 1000 : event.page.take;
-
-    if (targetEvent.value) {
-      setPageSizeValue(targetEvent.value);
-      if (targetEvent.value === "All") {
-        setTotalCount(jobs.length);
-      }
-    }
-    setPage({
-      ...event.page,
-      take,
-    });
-  };
-
   //Calculate total profit
   const totalProfitSum = useMemo(
     () =>
       jobs.reduce(
         (sum, job) =>
-          sum + (typeof job.Ata === "number" ? job.Ata : Number(job.Ata) || 0),
+          sum +
+          (typeof job.TotalProfit === "number"
+            ? job.TotalProfit
+            : Number(job.TotalProfit) || 0),
         0
       ),
     [jobs]

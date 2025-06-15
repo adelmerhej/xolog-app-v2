@@ -10,8 +10,10 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status"); 
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    
+    let limit = Number(searchParams.get('limit'));
+    if (!limit || limit === 0) {
+      limit = 0; // 0 means no limit in mongoose
+    }
     const query: Record<string, unknown> = {};
     if (status) {
       query.StatusType = status;

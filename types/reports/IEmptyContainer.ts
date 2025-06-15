@@ -25,6 +25,7 @@ export interface IEmptyContainer extends Document {
   DiffCntrToCnee: number;
   Departure: string;
   Destination: string;
+  TotalProfit?: number;
   createdAt: Date;
   updatedAt: Date;
 }
