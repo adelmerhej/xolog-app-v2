@@ -128,7 +128,7 @@ async function saveToMongoDB(collectionName: string, data: any[]) {
     
     // Clear existing collection with retry
     let clearSuccess = false;
-    retryCount = 0;
+    retryCount = 0;z
     
     while (!clearSuccess && retryCount < maxRetries) {
       try {

@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
 
     // Add filter for fullpaid param
     if (fullpaid === 'true') {
-      query.PendingInvoices = 0;
+      query.FullPaid = 1;
     }
 
     const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
