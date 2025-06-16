@@ -17,7 +17,7 @@ import {
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
 import { Checkbox } from "@progress/kendo-react-inputs";
-import { DropDownList } from "@progress/kendo-react-dropdowns";
+import { DropDownList, MultiSelect } from "@progress/kendo-react-dropdowns";
 import { IJobStatus } from "@/types/reports/IJobStatus";
 import {
   TotalsCell,
@@ -178,7 +178,7 @@ export default function JobStatusComponent() {
   const [isMobile, setIsMobile] = useState(false);
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   const [statusFilter, setStatusFilter] = useState<string>("New");
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(["All"]);
   const [fullPaidChecked, setFullPaidChecked] = useState(false);
 
   
@@ -261,13 +261,19 @@ export default function JobStatusComponent() {
     try {
       setShowLoading(true);
       const status = statusFilter === "All" ? "" : statusFilter;
-
+      const selectedDepartmentsParam =
+        selectedDepartments.length > 0
+          ? selectedDepartments.includes("All")
+            ? ["All"]
+            : selectedDepartments
+          : ["All"];
+          
       const res = await fetch(
         `/api/reports/admin/job-status?
         page=${Math.floor(pageState.skip / pageState.take) + 1}
         &search=${globalFilter}
         &status=${encodeURIComponent(status)}
-        &departments=${selectedDepartments.map(encodeURIComponent).join(",")}
+        &departments=${selectedDepartmentsParam}
           &fullpaid=${fullPaidChecked ? "true" : "false"}`,
         {
           method: "GET",
@@ -299,7 +305,7 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
+  }, [statusFilter, pageState.skip, pageState.take, globalFilter, selectedDepartments, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -374,47 +380,60 @@ export default function JobStatusComponent() {
   };
   //
 
-  const handleDepartmentChange = (dept: string) => {
-    if (dept === "All") {
-      setSelectedDepartments(["All"]);
-    } else {
-      setSelectedDepartments((prev) => {
-        const filtered = prev.filter((d) => d !== "All");
-        const isSelected = filtered.includes(dept);
-        if (isSelected) {
-          return filtered.filter((d) => d !== dept);
-        } else {
-          return [...filtered, dept];
-        }
-      });
-    }
-  };
+const handleDepartmentChange = (dept: string) => {
+  console.log("Selected Departments:", dept);
+  if (dept === "All") {
+    setSelectedDepartments(["All"]);
+  } else {
+    setSelectedDepartments((prev) => {
+      // If previous selection was ["All"] or empty, replace it with [dept]
+      // if (prev.includes("All") || prev.length === 0) {
+      //   return [dept];
+      // }
+      
+      // Otherwise, proceed with normal selection/deselection logic
+      const isSelected = prev.includes(dept);
+      
+      if (isSelected) {
+        const newSelection = prev.filter((d) => d !== dept);
+        return newSelection.length > 0 ? newSelection : ["All"];
+      } else {
+        return [...prev, dept];
+      }
+    });
+  }
+  
+};
 
   // Render departments selector dropdown
   const renderDepartmentsSelector = () => {
     const departments = [
-      "All",
-      "Import",
-      "Export",
-      "Clearance",
-      "Land Freight",
-      "Sea Cross",
+      { text: "All", value: "All" },
+      { text: "Import", value: "Import" },
+      { text: "Export", value: "Export" },
+      { text: "Clearance", value: "Clearance" },
+      { text: "Land Freight", value: "Land Freight" },
+      { text: "Sea Cross", value: "Sea Cross" },
     ];
-
     return (
-      <DropDownButton
-        text="Departments"
-        themeColor={"base"}
-        style={{ marginBottom: "20px", marginLeft: "10px" }}
-        items={departments.map((dept) => ({
-          text: dept,
-          selected: selectedDepartments.includes(dept),
-          id: dept,
-        }))}
-        onItemClick={(e: DropDownButtonItemClickEvent) => {
-          handleDepartmentChange(e.item.id);
-        }}
-      />
+      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 220 }}>
+        <MultiSelect
+          data={departments}
+          textField="text"
+          dataItemKey="value"
+          value={departments.filter(option => selectedDepartments.includes(option.value) && (option.value !== "All" || selectedDepartments.length === 1))}
+          onChange={e => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setSelectedDepartments(values);
+            } else {
+              setSelectedDepartments(["All"]);
+            }
+          }}
+          placeholder="Select departments..."
+        />
+      </div>
     );
   };
 
@@ -459,13 +478,7 @@ export default function JobStatusComponent() {
   useEffect(() => {
     setPageState((prev) => ({ ...prev, skip: 0 }));
     fetchData();
-  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked]);
-
-  console.log("Pagination:", {
-    skip: pageState.skip,
-    take: pageState.take,
-    total: totalCount,
-  });
+  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked, fetchData]);
 
   return (
     <>

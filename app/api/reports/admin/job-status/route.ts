@@ -30,6 +30,7 @@ import { JobStatusModel } from "@/models/reports/JobStatus";
 
 
 function getDepartmentMapping(department: string) {
+  console.log("Department:", department);
   switch (department) {
     case "Import":
       return { ids: [5, 16] };
@@ -42,26 +43,9 @@ function getDepartmentMapping(department: string) {
     case "Sea Cross":
       return { ids: [6], specialCondition: { id: 16, jobType: 3 } };
     default:
-      return { ids: [16] };
+      return { ids: [2, 5, 6, 8, 16, 17, 18] };
   }
 }
-
-// function getStatusMapping(status: string) {
-//   switch (status) {
-//     case "New":
-//       return { ids: ["SI New", 16] };
-//     case "Export":
-//       return { ids: [2, 18] };
-//     case "Clearance":
-//       return { ids: [8, 17] };
-//     case "Land Freight":
-//       return { ids: [6] };
-//     case "Sea Cross":
-//       return { ids: [6], specialCondition: { id: 16, jobType: 3 } };
-//     default:
-//       return { ids: [16] };
-//   }
-// }
 
 export async function GET(request: NextRequest) {
   try {
@@ -73,10 +57,12 @@ export async function GET(request: NextRequest) {
     if (!limit || limit === 0) {
       limit = 0; // 0 means no limit in mongoose
     }
-    const departments = searchParams.get('departments')?.split(',').filter(Boolean) || [];
+    const departments = searchParams.get('departments')?.trim()?.split(',').filter(Boolean) || [];
     const statuses = searchParams.get('status')?.trim()?.split(',').filter(Boolean) || [];
     const search = searchParams.get('search')?.trim() || '';
     const fullpaid = searchParams.get('fullpaid');
+
+    console.log("Search Params:", departments);
 
     // Get date filters
     // const dateFrom = searchParams.get('dateFrom');
@@ -95,7 +81,7 @@ export async function GET(request: NextRequest) {
     
     if (departments.length > 0) {
       const conditions = departments.map(dept => {
-        const { ids, specialCondition } = getDepartmentMapping(dept);
+        const { ids, specialCondition } = getDepartmentMapping(dept.trim());
         
         if (specialCondition) {
           return {
@@ -109,7 +95,7 @@ export async function GET(request: NextRequest) {
           };
         }
         return { DepartmentId: { $in: ids } };
-      });
+      });     
 
       // if there are multiple departments
       if (conditions.length === 1) {
@@ -137,8 +123,6 @@ export async function GET(request: NextRequest) {
     ]);
     const grandTotalProfit = grandTotalAgg[0]?.total || 0;
     
-    console.log("Total Profits:", query);
-
     if (totalProfits.length === 0) {
       return NextResponse.json({
         success: false,
