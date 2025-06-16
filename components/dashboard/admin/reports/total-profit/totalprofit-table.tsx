@@ -159,35 +159,17 @@ const allColumns = [
     },
   },
   {
-    field: "ETA",
-    title: "ETA",
+    field: "Arrival",
+    title: "ETA/ATA",
     width: "120px",
-    visible: false,
+    visible: true, // Make sure it's visible
+    sortable: true, // Enable sorting
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.Ata)}</td>;
-      },
-    },
-    filterable: {
-      operators: {
-        date: {
-          eq: "Is equal to",
-          gte: "Is after or equal to",
-          lte: "Is before or equal to",
-        },
-      },
-    },
-  },
-  {
-    field: "ATA",
-    title: "ATA",
-    width: "120px",
-    visible: false,
-    cells: {
-      data: (props: GridCustomCellProps) => {
-        const { dataItem } = props;
-        return <td>{formatDate(dataItem.Ata)}</td>;
+        // Show ATA if exists, otherwise ETA
+        const value = dataItem.ATA ? dataItem.ATA : dataItem.ETA;
+        return <td>{formatDate(value)}</td>;
       },
     },
     filterable: {
@@ -202,8 +184,38 @@ const allColumns = [
   },
   {
     field: "CountryOfDeparture",
+    title: "Country",
+    width: "100px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+   {
+    field: "Departure",
     title: "Departure",
-    width: "150px",
+    width: "100px",
+    visible: true,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  }, 
+  {
+    field: "Destination",
+    title: "Destination",
+    width: "100px",
     visible: true,
     filterable: {
       operators: {
@@ -216,10 +228,40 @@ const allColumns = [
     },
   },
   {
-    field: "Destination",
-    title: "Destination",
+    field: "vessel",
+    title: "vessel",
     width: "150px",
-    visible: true,
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "UserName",
+    title: "UserName",
+    width: "150px",
+    visible: false,
+    filterable: {
+      operators: {
+        string: {
+          contains: "Contains",
+          eq: "Is equal to",
+          neq: "Is not equal to",
+        },
+      },
+    },
+  },
+  {
+    field: "Notes",
+    title: "Notes",
+    width: "150px",
+    visible: false,
     filterable: {
       operators: {
         string: {

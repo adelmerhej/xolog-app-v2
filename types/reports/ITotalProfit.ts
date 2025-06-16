@@ -9,6 +9,7 @@ export interface ITotalProfit extends Document {
   TotalProfit?: number;
   ETA?: Date;
   ATA?: Date;
+  Arrival?: Date;
   UserName?: string;
   Notes?: string;
   CountryOfDeparture?: string;
