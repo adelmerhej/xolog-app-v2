@@ -107,7 +107,10 @@ export async function GET(request: NextRequest) {
 
     // Add filter for fullpaid param
     if (fullpaid === 'true') {
-      query.FullPaid = 1;
+      query.FullPaid = true;
+    }
+    else if (fullpaid === 'false') {
+      query.FullPaid = false;
     }
 
     const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
