@@ -4,31 +4,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
 import { JobStatusModel } from "@/models/reports/JobStatus";
 
-// Helper function to map departments to IDs
-// function getDepartmentMapping(department: string) {
-//   switch (department) {
-//     case "Import":
-//       return { ids: [5, 16].map(String) };  // Convert to strings
-//     case "Export":
-//       return { ids: [2, 18].map(String) };
-//     case "Clearance":
-//       return { ids: [8, 17].map(String) };
-//     case "Land Freight":
-//       return { ids: [6].map(String) };
-//     case "Sea Cross":
-//       return { 
-//         ids: [6].map(String), 
-//         specialCondition: { 
-//           id: String(16), 
-//           jobType: 3 
-//         } 
-//       };
-//     default:
-//       return { ids: [16].map(String) };
-//   }
-// }
-
-
 function getDepartmentMapping(department: string) {
   console.log("Department:", department);
   switch (department) {
@@ -64,19 +39,11 @@ export async function GET(request: NextRequest) {
 
     console.log("Search Params:", departments);
 
-    // Get date filters
-    // const dateFrom = searchParams.get('dateFrom');
-    // const dateTo = searchParams.get('dateTo');
-    
     // Build mongoose query
     const query: any = {};
 
     if (statuses.length > 0) {
       query.StatusType = { $in: statuses };
-      // If filtering for FullPaid, add PendingInvoices > 0
-      // if (statuses.includes("FullPaid")) {
-      //   query.PendingInvoices = { $gt: 0 };
-      // }
     }
     
     if (departments.length > 0) {

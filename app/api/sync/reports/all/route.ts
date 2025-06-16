@@ -6,7 +6,9 @@ const procedures = [
   { name: '__ClientsInvoiceReport_to_JSON', collection: 'ClientsInvoiceReport' },
   { name: '__Empty_Containers_to_JSON', collection: 'emptycontainers' },
   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' },
-  { name: '__Job_Status_to_JSON', collection: 'jobstatus' }
+  { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
+  { name: '__Job_Status_FullPaid_to_JSON', collection: 'jobstatus_1' }
+  
 ];
 
 // Validate collection names

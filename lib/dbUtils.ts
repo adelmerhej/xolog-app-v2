@@ -128,11 +128,17 @@ async function saveToMongoDB(collectionName: string, data: any[]) {
     
     // Clear existing collection with retry
     let clearSuccess = false;
-    retryCount = 0;z
+    retryCount = 0;
     
     while (!clearSuccess && retryCount < maxRetries) {
       try {
+        if (collectionName === "jobstatus_1") {
+          console.log("collectionName:", collectionName);
+          collectionName = "jobstatus";
+        }else{
         await collection.deleteMany({});
+        console.log("Deleted Collection Name:", collectionName);
+      }
         //console.log(`Cleared collection ${collectionName}:`, {
         //  deletedCount: deleteResult.deletedCount,
         //  acknowledged: deleteResult.acknowledged
