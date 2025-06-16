@@ -86,7 +86,7 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 }
 
 // Save JSON data to MongoDB
-async function saveToMongoDB(collectionName: string, data: any[]) {
+async function saveToMongoDB(collectionName: string, data: any[], skipDelete: boolean = false): Promise<void> {
 
   try {
     // Validate data before proceeding
@@ -105,7 +105,6 @@ async function saveToMongoDB(collectionName: string, data: any[]) {
     
     // Connect to MongoDB with retry
     let isConnected = false;
-    let skipDelete = collectionName === "jobstatus_1" ? true : false;
     const maxRetries = 3;
     let retryCount = 0;
     
