@@ -121,6 +121,7 @@ const allColumns = [
       }
     }
   },
+  { field: "StatusType", title: "StatusType", visible: true },
   { field: "Status", title: "Status", visible: false },
   { 
     field: "TotalInvoiceAmount", 
