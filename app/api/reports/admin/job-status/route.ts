@@ -5,7 +5,7 @@ import { dbConnect } from "@/lib/mongoose";
 import { JobStatusModel } from "@/models/reports/JobStatus";
 
 function getDepartmentMapping(department: string) {
-  console.log("Department:", department);
+  
   switch (department) {
     case "Import":
       return { ids: [5, 16] };
@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
     const fullpaid = searchParams.get('fullpaid');
 
-    console.log("Search Params:", departments);
+    console.log("status:", statuses);
+    console.log("Full Paid Status:", fullpaid);
 
     // Build mongoose query
     const query: any = {};
@@ -73,10 +74,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Add filter for fullpaid param
-    if (fullpaid === 'true') {
+    if (fullpaid === 'FullPaid') {
       query.FullPaid = true;
     }
-    else if (fullpaid === 'false') {
+    else if (fullpaid === 'Pendings') {
       query.FullPaid = false;
     }
 

@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
+
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -29,6 +30,7 @@ import {
   TotalProfitCell,
 } from "@/components/data-table/custom-cells";
 import { PagerTargetEvent } from "@progress/kendo-react-data-tools";
+import { CalendarDatePicker } from "@/components/ui/calendar-date-picker";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -38,8 +40,7 @@ const loadingPanelMarkup = (
   </div>
 );
 
-const LoadingPanel = (props: { gridRef: any }) => {
-  const { gridRef } = props;
+const LoadingPanel = ({ gridRef }: { gridRef: any }) => {
   const gridContent =
     gridRef.current && gridRef.current.querySelector(".k-grid-content");
   return gridContent
@@ -47,28 +48,25 @@ const LoadingPanel = (props: { gridRef: any }) => {
     : loadingPanelMarkup;
 };
 
-//Pagination customize
+// Pagination state
 interface PageState {
   skip: number;
   take: number;
 }
 const initialDataState: PageState = { skip: 0, take: 200 };
 
-// Helper function to format dates
+// Date formatting helper
 const formatDate = (dateString: string | Date | null | undefined): string => {
   if (!dateString) return "";
-
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
-
   const day = date.getDate().toString().padStart(2, "0");
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
-
   return `${day}/${month}/${year}`;
 };
 
-// Define all possible columns
+// Define all columns
 const allColumns = [
   {
     field: "JobDate",
@@ -83,7 +81,6 @@ const allColumns = [
   },
   { field: "JobNo", title: "Job#", width: "150px", visible: true },
   { field: "ReferenceNo", title: "Reference#", visible: true },
-
   { field: "CustomerName", title: "Customer", width: "150px", visible: true },
   {
     field: "PaymentDate",
@@ -148,15 +145,6 @@ const allColumns = [
     columnMenu: ColumnMenu,
     cells: { data: TotalProfitCell },
     width: "100px",
-    // Add footer cell if you want to show the sum at the bottom
-    // footerCell: () => (
-    //   <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-    //     ${grandTotalProfit.toLocaleString(undefined, {
-    //       minimumFractionDigits: 2,
-    //       maximumFractionDigits: 2,
-    //     })}
-    //   </td>
-    // )
   },
 ];
 
@@ -165,39 +153,45 @@ export default function JobStatusComponent() {
   const [jobs, setJobs] = useState<IJobStatus[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
-  // const [pagination, setPagination] = useState({
-  //   pageIndex: 0,
-  //   pageSize: 200,
-  // });
   const [pageState, setPageState] = React.useState<PageState>(initialDataState);
-  const [pageSizeValue, setPageSizeValue] = 
-        React.useState<number | string | undefined>();
-
+  const [pageSizeValue, setPageSizeValue] = React.useState<
+    number | string | undefined
+  >();
   const [totalCount, setTotalCount] = useState(0);
   const [columns, setColumns] = useState(allColumns);
   const [isMobile, setIsMobile] = useState(false);
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>("New");
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(["All"]);
+  const [showFullPaid, setShowFullPaid] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string[]>(["New"]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
+    "All",
+  ]);
   const [fullPaidChecked, setFullPaidChecked] = useState(false);
+  // Initialize date range for filtering
+  const [selectedDateRange, setSelectedDateRange] = useState({
+    from: new Date(new Date().getFullYear(), 0, 1), // Jan 1st of current year
+    to: new Date(),
+  });
 
-  
-  // Handle global filter change
-  const pageChange = (event: GridPageChangeEvent) => {
-      const targetEvent = event.targetEvent as PagerTargetEvent;
-      const take = targetEvent.value === 'All' ? filteredJobs.length : event.page.take;
-
-      if (targetEvent.value) {
-          setPageSizeValue(targetEvent.value);
-      }
-      setPageState({
-          ...event.page,
-          take
-      });
+  const handleFullPaidChange = (event: any) => {
+    setFullPaidChecked(event.value);
   };
 
+  // Handle global filter change
+  const pageChange = (event: GridPageChangeEvent) => {
+    const targetEvent = event.targetEvent as PagerTargetEvent;
+    const take =
+      targetEvent.value === "All" ? filteredJobs.length : event.page.take;
+    if (targetEvent.value) {
+      setPageSizeValue(targetEvent.value);
+    }
+    setPageState({
+      ...event.page,
+      take,
+    });
+  };
 
-  // Pass grandTotalProfit to the TotalProfit column
+  // Update footer cell dynamically
   const updatedColumns = useMemo(() => {
     return columns.map((column) => {
       if (column.field === "TotalProfit") {
@@ -220,13 +214,12 @@ export default function JobStatusComponent() {
 
   const DATA_ITEM_KEY = "id";
 
-  // Handle mobile view
+  // Responsive handling
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
       if (mobile) {
-        // Set mobile-friendly columns
         setColumns((prevColumns) =>
           prevColumns.map((column) => ({
             ...column,
@@ -239,7 +232,6 @@ export default function JobStatusComponent() {
           }))
         );
       } else {
-        // Reset to default visible columns
         setColumns((prevColumns) =>
           prevColumns.map((column) => ({
             ...column,
@@ -260,21 +252,34 @@ export default function JobStatusComponent() {
   const fetchData = useCallback(async () => {
     try {
       setShowLoading(true);
-      const status = statusFilter === "All" ? "" : statusFilter;
+      const status = statusFilter.includes("All") ? "" : statusFilter;
+      const checkedShowFullPaid = showFullPaid === "All" ? "" : showFullPaid;
+
       const selectedDepartmentsParam =
         selectedDepartments.length > 0
           ? selectedDepartments.includes("All")
             ? ["All"]
             : selectedDepartments
           : ["All"];
-          
+      const statusParam = Array.isArray(status) ? status.join(",") : status;
+
+      // Format date range for API request
+      const startDate = selectedDateRange.from
+        ? formatDate(selectedDateRange.from)
+        : "";
+      const endDate = selectedDateRange.to
+        ? formatDate(selectedDateRange.to)
+        : "";
+
       const res = await fetch(
         `/api/reports/admin/job-status?
-        page=${Math.floor(pageState.skip / pageState.take) + 1}
-        &search=${globalFilter}
-        &status=${encodeURIComponent(status)}
-        &departments=${selectedDepartmentsParam}
-          &fullpaid=${fullPaidChecked ? "true" : "false"}`,
+          page=${Math.floor(pageState.skip / pageState.take) + 1}
+          &search=${globalFilter}
+          &status=${encodeURIComponent(statusParam)}
+          &departments=${selectedDepartmentsParam}
+          &fullpaid=${checkedShowFullPaid}
+          &startDate=${encodeURIComponent(startDate)}
+          &endDate=${encodeURIComponent(endDate)}`,
         {
           method: "GET",
           headers: {
@@ -284,20 +289,16 @@ export default function JobStatusComponent() {
       );
 
       if (!res.ok) throw new Error("Failed to fetch jobs");
+
       const data = await res.json();
 
       if (Array.isArray(data.data)) {
         setJobs(data.data);
         setTotalCount(data.pagination.total);
         setGrandTotalProfit(data.pagination.grandTotalProfit ?? 0);
-        setShowLoading(false);
-      } else {
-        console.error("Invalid API response", data);
-        setJobs([]);
-        setTotalCount(0);
-        setShowLoading(false);
-        setGrandTotalProfit(0);
       }
+
+      setShowLoading(false);
     } catch (err) {
       console.error("Error fetching jobs:", err);
       setJobs([]);
@@ -305,11 +306,13 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [statusFilter, pageState.skip, pageState.take, globalFilter, selectedDepartments, fullPaidChecked]);
+  }, [statusFilter, showFullPaid, selectedDepartments, 
+    selectedDateRange.from, selectedDateRange.to, pageState.skip, 
+    pageState.take, globalFilter]);
 
   useEffect(() => {
     fetchData();
-  }, [globalFilter, fetchData]);
+  }, [fetchData]);
 
   // Toggle column visibility
   const toggleColumnVisibility = (field: string) => {
@@ -321,13 +324,90 @@ export default function JobStatusComponent() {
       )
     );
   };
-  // Toggle status visibility
-  const toggleStatusFilter = (status: string) => {
-    setStatusFilter(status);
+
+  // Render column selector
+  const renderColumnSelector = () => {
+    return (
+      <div style={{ marginBottom: "10px" }}>
+        <DropDownButton
+          text="Columns"
+          themeColor={"base"}
+          items={columns.map((column) => ({
+            text: column.title,
+            selected: column.visible,
+            id: column.field,
+          }))}
+          onItemClick={(e: DropDownButtonItemClickEvent) => {
+            toggleColumnVisibility(e.item.id);
+          }}
+          className="mr-2"
+        />
+      </div>
+    );
   };
 
-  // Render column selector dropdown
-  const renderColumnSelector = () => {
+  // Status options
+  const renderStatusSelector = () => {
+    const statusOptions = [
+      { text: "All", value: "All" },
+      { text: "New", value: "New" },
+      { text: "Delivered", value: "Delivered" },
+      { text: "Cancelled", value: "Cancelled" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={statusOptions}
+          textField="text"
+          dataItemKey="value"
+          value={statusOptions.filter(
+            (option) =>
+              statusFilter.includes(option.value) &&
+              (option.value !== "All" || statusFilter.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setStatusFilter(values);
+            } else {
+              setStatusFilter(["All"]);
+            }
+          }}
+          placeholder="Select status..."
+          className="w-[220px] mr-2"
+        />
+      </div>
+    );
+  };
+
+  // Render checkbox for full paid filter
+  // This checkbox will filter jobs that are fully paid
+  const checkedOptions = [
+    { text: "All", value: "All" },
+    { text: "FullPaid", value: "FullPaid" },
+    { text: "Pendings", value: "Pendings" },
+  ];
+  const renderCheckFullpaidSelector = () => {
+    return (
+      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 150 }}>
+        <DropDownList
+          data={checkedOptions}
+          textField="text"
+          dataItemKey="value"
+          value={checkedOptions.find((option) => option.value === showFullPaid)}
+          onChange={(e) => toggleCheckedFilter(e.value.value)}
+        />
+      </div>
+    );
+  };
+
+  const toggleCheckedFilter = (status: string) => {
+    setShowFullPaid(status);
+  };
+
+  //
+  const renderCheckFullpaidSelector2 = () => {
     return (
       <DropDownButton
         text="Columns"
@@ -345,67 +425,6 @@ export default function JobStatusComponent() {
     );
   };
 
-  // Render status selector dropdown
-  const statusOptions = [
-    { text: "All", value: "All" },
-    { text: "New", value: "New" },
-    { text: "Delivered", value: "Delivered" },
-    { text: "Cancelled", value: "Cancelled" },
-  ];
-  const renderStatusSelector = () => {
-    return (
-      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 150 }}>
-        <DropDownList
-          data={statusOptions}
-          textField="text"
-          dataItemKey="value"
-          value={statusOptions.find((option) => option.value === statusFilter)}
-          onChange={(e) => toggleStatusFilter(e.value.value)}
-        />
-      </div>
-    );
-  };
-  //
-
-  const renderCheckFullpaidSelector = () => {
-    return (
-      <div style={{ marginBottom: "20px", marginLeft: "10px" }}>
-        <Checkbox
-          label="Show Full Paid Only"
-          checked={fullPaidChecked}
-          onChange={handleFullPaidChange}
-        />
-      </div>
-    );
-  };
-  //
-
-const handleDepartmentChange = (dept: string) => {
-  console.log("Selected Departments:", dept);
-  if (dept === "All") {
-    setSelectedDepartments(["All"]);
-  } else {
-    setSelectedDepartments((prev) => {
-      // If previous selection was ["All"] or empty, replace it with [dept]
-      // if (prev.includes("All") || prev.length === 0) {
-      //   return [dept];
-      // }
-      
-      // Otherwise, proceed with normal selection/deselection logic
-      const isSelected = prev.includes(dept);
-      
-      if (isSelected) {
-        const newSelection = prev.filter((d) => d !== dept);
-        return newSelection.length > 0 ? newSelection : ["All"];
-      } else {
-        return [...prev, dept];
-      }
-    });
-  }
-  
-};
-
-  // Render departments selector dropdown
   const renderDepartmentsSelector = () => {
     const departments = [
       { text: "All", value: "All" },
@@ -416,13 +435,17 @@ const handleDepartmentChange = (dept: string) => {
       { text: "Sea Cross", value: "Sea Cross" },
     ];
     return (
-      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 220 }}>
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
         <MultiSelect
           data={departments}
           textField="text"
           dataItemKey="value"
-          value={departments.filter(option => selectedDepartments.includes(option.value) && (option.value !== "All" || selectedDepartments.length === 1))}
-          onChange={e => {
+          value={departments.filter(
+            (option) =>
+              selectedDepartments.includes(option.value) &&
+              (option.value !== "All" || selectedDepartments.length === 1)
+          )}
+          onChange={(e) => {
             let values = e.value.map((item: any) => item.value);
             if (values.length > 0) {
               values = values.filter((v: string) => v !== "All");
@@ -432,24 +455,22 @@ const handleDepartmentChange = (dept: string) => {
             }
           }}
           placeholder="Select departments..."
+          className="w-[220px] mr-2"
         />
       </div>
     );
   };
 
-  // Filter the jobs based on status
   const filteredJobs = useMemo(() => {
-    if (statusFilter === "All") return jobs;
+    if (statusFilter.includes("All")) return jobs;
     return jobs.filter((job) => {
       const jobStatus = job.StatusType;
-      switch (statusFilter) {
-        case "New":
+      switch (true) {
+        case statusFilter.includes("New"):
           return jobStatus === "New";
-        case "FullPaid":
-          return jobStatus === "New" && job.PendingInvoices === 0;
-        case "Delivered":
+        case statusFilter.includes("Delivered"):
           return jobStatus === "Delivered";
-        case "Cancelled":
+        case statusFilter.includes("Cancelled"):
           return jobStatus === "Cancelled";
         default:
           return true;
@@ -457,7 +478,6 @@ const handleDepartmentChange = (dept: string) => {
     });
   }, [jobs, statusFilter]);
 
-  //Calculate total profit
   const totalProfitSum = useMemo(
     () =>
       filteredJobs.reduce(
@@ -471,103 +491,102 @@ const handleDepartmentChange = (dept: string) => {
     [filteredJobs]
   );
 
-  const handleFullPaidChange = (event: any) => {
-    setFullPaidChecked(event.value);
-  };
-
   useEffect(() => {
     setPageState((prev) => ({ ...prev, skip: 0 }));
     fetchData();
-  }, [globalFilter, statusFilter, selectedDepartments, fullPaidChecked, fetchData]);
+  }, [
+    globalFilter,
+    statusFilter,
+    selectedDepartments,
+    fullPaidChecked,
+    fetchData,
+  ]);
 
   return (
     <>
-      {/* <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
-        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
-        {pagination.pageSize}
-      </div> */}
+      {/* Info Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-center">
+        <div className="text-xs text-muted-foreground mt-2">
+          Total rows: {totalCount} | Page{" "}
+          {Math.ceil(pageState.skip / pageState.take) + 1} of{" "}
+          {Math.ceil(totalCount / pageState.take)} | Rows per page:{" "}
+          {pageState.take}
+        </div>
 
-      <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page{" "}
-        {Math.ceil(pageState.skip / pageState.take) + 1} of{" "}
-        {Math.ceil(totalCount / pageState.take)} | Rows per page:{" "}
-        {pageState.take}
+        {/* Right-aligned totals */}
+        <div className="flex flex-col md:flex-row gap-4 text-sm font-medium ">
+          <div className="flex flex-col md:flex-row gap-4 justify-end">
+            <div className="flex items-center text-xs">
+              <span>Page profit:</span>
+              <span className="ml-2 font-semibold text-green-700">
+                ${totalProfitSum.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center text-xs">
+              <span>Grand total:</span>
+              <span className="ml-2 font-semibold text-blue-700">
+                ${grandTotalProfit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Buttons */}
+      {/* Controls & Totals Row */}
       <div className="flex justify-between">
-        <div className="flex justify-start">
-          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-            Reload Data
-          </Button>
-          {renderColumnSelector()}
-          {renderDepartmentsSelector()}
-          {renderStatusSelector()}
-          {renderCheckFullpaidSelector()}
-        </div>
-        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-          <div className="flex items-center">
-            <span className="text-sm">Page profit:</span>
-            <span className="ml-2 font-semibold text-green-700">
-              $
-              {totalProfitSum.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm">Grand total:</span>
-            <span className="ml-2 font-semibold text-blue-700">
-              $
-              {grandTotalProfit.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
+          {/* Left-aligned controls */}
+          <div className="flex flex-wrap gap-2">
+            {renderColumnSelector()}
+            {renderDepartmentsSelector()}
+            {renderStatusSelector()}
+            {renderCheckFullpaidSelector()}
+
+            {/* Date Range Picker */}
+            <div className="flex flex-col md:flex-row gap-4 justify-start">
+              <CalendarDatePicker
+                className="text-xs"
+                date={{
+                  from: selectedDateRange.from,
+                  to: selectedDateRange.to,
+                }}
+                onDateSelect={(range) => {
+                  setSelectedDateRange(range);
+                  fetchData();
+                }}
+                variant="outline"
+                numberOfMonths={2}
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* GRID */}
+      {/* Grid */}
       <div ref={gridRef} className="text-sm">
         {showLoading ? <LoadingPanel gridRef={gridRef} /> : null}
-
         <Grid
           data={filteredJobs}
           dataItemKey={DATA_ITEM_KEY}
-          style={{
-            height: "650px",
-            fontSize: "0.75rem",
-          }}
+          style={{ height: "650px", fontSize: "0.75rem" }}
           autoProcessData={true}
           sortable={{ mode: "multiple" }}
           groupable={true}
           selectable={false}
           filterable={true}
-          defaultTake={200}
-          defaultSkip={0}
           pageable={{
             buttonCount: 4,
             type: "numeric",
             info: true,
-            pageSizes: [10, 50, 100, 200, 1000, 'All'],
+            pageSizes: [10, 50, 100, 200, 1000, "All"],
             pageSizeValue: pageSizeValue,
           }}
           skip={pageState.skip}
           take={pageState.take}
           total={totalCount}
-          // onPageChange={(e) => {
-          //   setPageState({
-          //     skip: e.page.skip,
-          //     take: e.page.take,
-          //   });
-          // }}
           onPageChange={pageChange}
-          
         >
-          {columns
+          {updatedColumns
             .filter((c) => c.visible)
             .map((column) => (
               <Column
@@ -579,11 +598,7 @@ const handleDepartmentChange = (dept: string) => {
                   column.cells || {
                     data: (props: GridCustomCellProps) => {
                       const { dataItem, field } = props;
-
-                      if (!dataItem || !field) {
-                        return null;
-                      }
-
+                      if (!dataItem || !field) return null;
                       return (
                         <td style={{ fontSize: "0.75rem", padding: "4px 8px" }}>
                           {dataItem[field as keyof IJobStatus]}
@@ -596,7 +611,6 @@ const handleDepartmentChange = (dept: string) => {
             ))}
         </Grid>
       </div>
-      {/* END GRID */}
     </>
   );
 }
