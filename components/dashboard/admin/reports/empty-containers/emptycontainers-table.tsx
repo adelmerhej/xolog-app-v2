@@ -4,7 +4,7 @@
 
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
-import { process } from "@progress/kendo-data-query";
+import { process, GroupDescriptor  } from "@progress/kendo-data-query";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Grid,
@@ -42,6 +42,17 @@ interface PageState {
   take: number;
 }
 const initialDataState: PageState = { skip: 0, take: 10 };
+
+const initialGroup: GroupDescriptor[] = [
+    {
+        field: 'DepartmentName',
+        aggregates: [
+            { field: 'JobNo', aggregate: 'count' }, 
+            { field: 'TotalProfit', aggregate: 'sum' }
+        ],
+        dir: 'desc' // Set descending order
+    }
+];
 
 // Helper function to format dates
 const formatDate = (dateString: string | Date | null | undefined): string => {
@@ -291,6 +302,12 @@ const allColumns = [
     width: "100px",
     visible: false,
   },
+    {
+    field: "DepartmentName",
+    title: "Department",
+    width: "100px",
+    visible: false,
+  },
 ];
 
 export default function EmptyContainersComponent() {
@@ -494,6 +511,7 @@ export default function EmptyContainersComponent() {
           autoProcessData={true}
           sortable={{ mode: "multiple" }}
           groupable={true}
+          defaultGroup={initialGroup}
           selectable={false}
           filterable={true}
           defaultTake={200}

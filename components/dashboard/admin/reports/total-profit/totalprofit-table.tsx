@@ -65,7 +65,7 @@ const allColumns = [
   {
     field: "JobNo",
     title: "Job#",
-    width: "150px",
+    width: "130px",
     visible: true,
     filterable: {
       operators: {
@@ -131,7 +131,7 @@ const allColumns = [
   {
     field: "ReferenceNo",
     title: "Reference#",
-    width: "150px",
+    width: "125px",
     visible: true,
     filterable: {
       operators: {
@@ -146,7 +146,7 @@ const allColumns = [
   {
     field: "StatusType",
     title: "Status Type",
-    width: "150px",
+    width: "125px",
     visible: true,
     filterable: {
       operators: {
