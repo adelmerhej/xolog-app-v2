@@ -81,7 +81,7 @@ const allColumns = [
       },
     },
   },
-  { field: "JobNo", title: "Job#", width: "100px", visible: true },
+  { field: "JobNo", title: "Job#", width: "150px", visible: true },
   { field: "ReferenceNo", title: "Reference#", visible: true },
 
   { field: "CustomerName", title: "Customer", width: "150px", visible: true },

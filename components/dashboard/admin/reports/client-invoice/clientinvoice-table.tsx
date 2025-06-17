@@ -57,7 +57,7 @@ const formatDate = (dateString: string | Date | null | undefined): string => {
 
 // Define all possible columns
 const allColumns = [
-  { field: "JobNo", title: "Job#", width: "75px", visible: true },
+  { field: "JobNo", title: "Job#", width: "150px", visible: true },
   { field: "QuotationNo", title: "Quotation#", visible: true },
   { field: "Mbl", title: "MBL", visible: false },
   { field: "InvoiceNo", title: "Invoice#", visible: true },

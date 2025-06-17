@@ -76,7 +76,7 @@ const allColumns = [
   {
     field: "JobNo",
     title: "Job#",
-    width: "100px",
+    width: "150px",
     visible: true,
     filterable: {
       operators: {
