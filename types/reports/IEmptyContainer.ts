@@ -26,6 +26,10 @@ export interface IEmptyContainer extends Document {
   Departure: string;
   Destination: string;
   TotalProfit?: number;
+  PaidDO: boolean;
+	PaidDate?: Date;
+	MissingDocuments: boolean;
+	MissingDocumentsDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

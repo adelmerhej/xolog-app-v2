@@ -279,6 +279,18 @@ const allColumns = [
     width: "150px",
     visible: false,
   },
+  {
+    field: "PaidDO",
+    title: "Paid DO",
+    width: "100px",
+    visible: false,
+  },
+  {
+    field: "MissingDocuments",
+    title: "Missing Documents",
+    width: "100px",
+    visible: false,
+  },
 ];
 
 export default function EmptyContainersComponent() {
@@ -444,9 +456,9 @@ export default function EmptyContainersComponent() {
           </Button>
           {renderColumnSelector()}
         </div>
-        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
+        {/* <div className="flex flex-col md:flex-row gap-2 md:gap-6">
           <div className="flex items-center">
-            <span className="text-sm">Page total:</span>
+            <span className="text-sm">Page total:</spakn>
             <span className="ml-2 font-semibold text-green-700">
               $
               {totalProfitSum.toLocaleString(undefined, {
@@ -465,7 +477,7 @@ export default function EmptyContainersComponent() {
               })}
             </span>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* GRID */}
