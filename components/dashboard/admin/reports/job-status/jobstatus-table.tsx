@@ -565,6 +565,7 @@ const handleDepartmentChange = (dept: string) => {
           //   });
           // }}
           onPageChange={pageChange}
+          
         >
           {columns
             .filter((c) => c.visible)
