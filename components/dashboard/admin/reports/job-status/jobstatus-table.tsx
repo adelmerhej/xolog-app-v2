@@ -146,6 +146,63 @@ const allColumns = [
     cells: { data: TotalProfitCell },
     width: "100px",
   },
+  {
+    field: "OperatingUserId",
+    title: "Operating User",
+    width: "150px",
+    visible: false,
+    cells: { data: PersonCell },
+  },
+  {
+    field: "DepartmentName",
+    title: "Department",
+    width: "150px",
+    visible: false,
+  },
+  {
+    field: "Tejrim",
+    title: "Tejrim",
+    width: "100px",
+    visible: false,
+  },
+  {
+    field: "CanceledJob",
+    title: "Canceled Job",
+    width: "100px",
+    visible: false,
+  },
+  {
+    field: "ConsigneeName",
+    title: "Consignee Name",
+    width: "150px",
+    visible: false,
+  },
+  {
+    field: "PendingCosts",
+    title: "Pending Costs",
+    width: "150px",
+    visible: false,
+  },
+  {
+    field: "FullPaid",
+    title: "Full Paid",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.FullPaid}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
 ];
 
 export default function JobStatusComponent() {

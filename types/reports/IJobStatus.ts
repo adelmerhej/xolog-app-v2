@@ -20,6 +20,7 @@ export interface IJobStatus extends Document {
   JobType: string;
   ATA: Date;
   ETA: Date;
+  FullPaid?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
