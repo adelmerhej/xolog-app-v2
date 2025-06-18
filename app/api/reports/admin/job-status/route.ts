@@ -74,8 +74,10 @@ export async function GET(request: NextRequest) {
     // Apply FullPaid filter
     if (fullpaid === 'fullpaid') {
       query.FullPaid = true;
+      query.ATA = null;
     } else if (fullpaid === 'notpaid') {
       query.FullPaid = false;
+      query.ATA = null;
     }else if (fullpaid === 'pendings') {
       query.ATA = { $ne: null, $lte: new Date() };
     }
