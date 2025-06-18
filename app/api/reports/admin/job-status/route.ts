@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
     const departments = searchParams.get('departments')?.trim()?.split(',').filter(Boolean) || [];
     const statuses = searchParams.get('status')?.trim()?.split(',').filter(Boolean) || [];
     const search = searchParams.get('search')?.trim() || '';
-    const fullpaid = searchParams.get('fullpaid');
-
+    //const fullpaid = searchParams.get('fullpaid');
+    const fullpaid = searchParams.get('fullpaid')?.trim()?.toLowerCase();
      // Build mongoose query
     const query: any = {};
 
@@ -70,13 +70,15 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    // Add filter for fullpaid param
-    if (fullpaid === 'FullPaid') {
+    // Apply FullPaid filter
+    if (fullpaid === 'fullpaid') {
       query.FullPaid = true;
-    }
-    else if (fullpaid === 'Pendings') {
+    } else if (fullpaid === 'pendings') {
       query.FullPaid = false;
     }
+
+    console.log('fullpaid param:', fullpaid);
+    console.log('Final query:', query);
 
     const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
     if (limit > 0) {
