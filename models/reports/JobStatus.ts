@@ -129,6 +129,7 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
   { timestamps: true, collection: "jobstatus" }
 );
 
+
 // Add indexes for better performance
 JobStatusSchema.index({ CustomerName: 1 });
 JobStatusSchema.index({ StatusType: 1 });

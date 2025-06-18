@@ -278,8 +278,8 @@ export default function JobStatusComponent() {
           &status=${encodeURIComponent(statusParam)}
           &departments=${selectedDepartmentsParam}
           &fullpaid=${checkedShowFullPaid}
-          &startDate=${encodeURIComponent(startDate)}
-          &endDate=${encodeURIComponent(endDate)}`,
+          &startDate=${startDate}
+          &endDate=${endDate}`,
         {
           method: "GET",
           headers: {

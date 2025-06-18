@@ -37,10 +37,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
     const fullpaid = searchParams.get('fullpaid');
 
-    console.log("status:", statuses);
-    console.log("Full Paid Status:", fullpaid);
-
-    // Build mongoose query
+     // Build mongoose query
     const query: any = {};
 
     if (statuses.length > 0) {
@@ -72,7 +69,7 @@ export async function GET(request: NextRequest) {
         query.$or = conditions;
       }
     }
-
+    
     // Add filter for fullpaid param
     if (fullpaid === 'FullPaid') {
       query.FullPaid = true;
