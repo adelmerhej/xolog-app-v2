@@ -442,7 +442,8 @@ export default function JobStatusComponent() {
   // This checkbox will filter jobs that are fully paid
   const checkedOptions = [
     { text: "All", value: "All" },
-    { text: "FullPaid", value: "FullPaid" },
+    { text: "Full Paid", value: "FullPaid" },
+    { text: "Not Paid", value: "NotPaid" },
     { text: "Pendings", value: "Pendings" },
   ];
   const renderCheckFullpaidSelector = () => {

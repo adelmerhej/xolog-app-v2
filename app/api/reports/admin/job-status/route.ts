@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
 import { JobStatusModel } from "@/models/reports/JobStatus";
+import { date } from "zod";
 
 function getDepartmentMapping(department: string) {
   
@@ -73,8 +74,10 @@ export async function GET(request: NextRequest) {
     // Apply FullPaid filter
     if (fullpaid === 'fullpaid') {
       query.FullPaid = true;
-    } else if (fullpaid === 'pendings') {
+    } else if (fullpaid === 'notpaid') {
       query.FullPaid = false;
+    }else if (fullpaid === 'pendings') {
+      query.ATA = { $ne: null, $lte: new Date() };
     }
 
     console.log('fullpaid param:', fullpaid);
