@@ -218,12 +218,15 @@ export default function JobStatusComponent() {
   const [columns, setColumns] = useState(allColumns);
   const [isMobile, setIsMobile] = useState(false);
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
-  const [showFullPaid, setShowFullPaid] = useState<string>("All");
+  //const [showFullPaid, setShowFullPaid] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string[]>(["New"]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
     "All",
   ]);
-  const [fullPaidChecked, setFullPaidChecked] = useState(false);
+  const [fullPaidChecked, setFullPaidChecked] = useState<string[]>([
+    "All",
+  ]);
+
   // Initialize date range for filtering
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(new Date().getFullYear(), 0, 1), // Jan 1st of current year
@@ -310,7 +313,7 @@ export default function JobStatusComponent() {
     try {
       setShowLoading(true);
       const status = statusFilter.includes("All") ? "" : statusFilter;
-      const checkedShowFullPaid = showFullPaid === "All" ? "" : showFullPaid;
+      //const checkedShowFullPaid = showFullPaid === "All" ? "" : showFullPaid;
 
       const selectedDepartmentsParam =
         selectedDepartments.length > 0
@@ -334,7 +337,7 @@ export default function JobStatusComponent() {
           &search=${globalFilter}
           &status=${encodeURIComponent(statusParam)}
           &departments=${selectedDepartmentsParam}
-          &fullpaid=${checkedShowFullPaid}
+          &fullpaid=${fullPaidChecked}
           &startDate=${startDate}
           &endDate=${endDate}`,
         {
@@ -363,7 +366,7 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [statusFilter, showFullPaid, selectedDepartments, 
+  }, [statusFilter, fullPaidChecked, selectedDepartments, 
     selectedDateRange.from, selectedDateRange.to, pageState.skip, 
     pageState.take, globalFilter]);
 
@@ -440,28 +443,65 @@ export default function JobStatusComponent() {
 
   // Render checkbox for full paid filter
   // This checkbox will filter jobs that are fully paid
+  // const checkedOptions = [
+  //   { text: "All", value: "All" },
+  //   { text: "Full Paid", value: "FullPaid" },
+  //   { text: "Not Paid", value: "NotPaid" },
+  //   { text: "Pendings", value: "Pendings" },
+  // ];
+  // const renderCheckFullpaidSelector = () => {
+  //   return (
+  //     <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 150 }}>
+  //       <DropDownList
+  //         data={checkedOptions}
+  //         textField="text"
+  //         dataItemKey="value"
+  //         value={checkedOptions.find((option) => option.value === showFullPaid)}
+  //         onChange={(e) => toggleCheckedFilter(e.value.value)}
+  //       />
+  //     </div>
+  //   );
+  // };
+
+// Status options
+const renderCheckFullpaidSelector = () => {
   const checkedOptions = [
     { text: "All", value: "All" },
     { text: "Full Paid", value: "FullPaid" },
     { text: "Not Paid", value: "NotPaid" },
     { text: "Pendings", value: "Pendings" },
   ];
-  const renderCheckFullpaidSelector = () => {
-    return (
-      <div style={{ marginBottom: "20px", marginLeft: "10px", minWidth: 150 }}>
-        <DropDownList
-          data={checkedOptions}
-          textField="text"
-          dataItemKey="value"
-          value={checkedOptions.find((option) => option.value === showFullPaid)}
-          onChange={(e) => toggleCheckedFilter(e.value.value)}
-        />
-      </div>
-    );
-  };
+  return (
+    <div style={{ marginBottom: "20px", minWidth: 220 }}>
+      <MultiSelect
+        data={checkedOptions}
+        textField="text"
+        dataItemKey="value"
+        value={checkedOptions.filter(
+          (option) =>
+            fullPaidChecked.includes(option.value) &&
+            (option.value !== "All" || fullPaidChecked.length === 1)
+        )}
+        onChange={(e) => {
+          let values = e.value.map((item: any) => item.value);
+          if (values.length > 0) {
+            values = values.filter((v: string) => v !== "All");
+            setFullPaidChecked(values);
+          } else {
+            setFullPaidChecked(["All"]);
+          }
+        }}
+        placeholder="Select payment..."
+        className="w-[220px] mr-2"
+      />
+    </div>
+  );
+};
+
+
 
   const toggleCheckedFilter = (status: string) => {
-    setShowFullPaid(status);
+    setFullPaidChecked([status]);
   };
 
   //
