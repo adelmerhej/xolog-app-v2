@@ -25,11 +25,13 @@ export interface IEmptyContainer extends Document {
   DiffCntrToCnee: number;
   Departure: string;
   Destination: string;
-  TotalProfit?: number;
   PaidDO: boolean;
 	PaidDate?: Date;
 	MissingDocuments: boolean;
 	MissingDocumentsDate?: Date;
+  TotalInvoices: number;
+  TotalCosts: number;
+  TotalProfit: number;
   createdAt: Date;
   updatedAt: Date;
 }

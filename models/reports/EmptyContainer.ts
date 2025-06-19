@@ -27,6 +27,9 @@ interface IEmptyContainer extends Document {
   DiffCntrToCnee: number;
   Departure: string;
   Destination: string;
+  TotalInvoices: number;
+  TotalCosts: number;
+  TotalProfit: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -140,6 +143,18 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     Destination: {
       type: String,
       default: "",
+    },
+    TotalInvoices: {
+      type: Number,
+      default: 0,
+    },
+    TotalCosts: {
+      type: Number,
+      default: 0,
+    },
+    TotalProfit: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true, collection: "emptycontainers" }

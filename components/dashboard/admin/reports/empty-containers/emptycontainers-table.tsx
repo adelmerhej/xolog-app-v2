@@ -208,7 +208,7 @@ const allColumns = [
     field: "Mbol",
     title: "MBL",
     width: "150px",
-    visible: true,
+    visible: false,
     filterable: {
       operators: {
         string: {
@@ -244,7 +244,7 @@ const allColumns = [
     field: "ContainerNo",
     title: "Container No",
     width: "120px",
-    visible: true,
+    visible: false,
     filterable: {
       operators: {
         string: {
@@ -307,6 +307,24 @@ const allColumns = [
     title: "Department",
     width: "100px",
     visible: false,
+  },
+  {
+    field: "TotalInvoices",
+    title: "Total Invoices",
+    width: "100px",
+    visible: false,
+  },
+  {
+    field: "TotalCosts",
+    title: "Total Costs",
+    width: "100px",
+    visible: false,
+  },
+  {
+    field: "TotalProfit",
+    title: "Total Profit",
+    width: "100px",
+    visible: true,
   },
 ];
 
@@ -459,10 +477,31 @@ export default function EmptyContainersComponent() {
 
   return (
     <>
+      {/* Info Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-center">
       <div className="text-xs text-muted-foreground mt-2">
         Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
         {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
         {pagination.pageSize}
+      </div>
+
+        {/* Right-aligned totals */}
+        <div className="flex flex-col md:flex-row gap-4 text-sm font-medium ">
+          <div className="flex flex-col md:flex-row gap-4 justify-end">
+            <div className="flex items-center text-xs">
+              <span>Page profit:</span>
+              <span className="ml-2 font-semibold text-green-700">
+                ${totalProfitSum.toFixed(2)}
+              </span>
+            </div>
+            <div className="flex items-center text-xs">
+              <span>Grand total:</span>
+              <span className="ml-2 font-semibold text-blue-700">
+                ${grandTotalProfit.toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Buttons */}
