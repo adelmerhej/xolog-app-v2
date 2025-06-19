@@ -234,6 +234,17 @@ async function updateJobStatuses(): Promise<void> {
       ]
     );
 
+    await collection.updateMany(
+      { ATA: { $type: "string" } },
+      [
+        {
+          $set: {
+            ATA: { $dateFromString: { dateString: "$ATA" } }
+          }
+        }
+      ]
+    );
+
     console.log("Updated job statuses", new Date().toLocaleTimeString());
   } catch (error) {
     console.error("Error updating job statuses:", error);
