@@ -87,8 +87,7 @@ export async function GET(request: NextRequest) {
     if (fullpaid.length > 0) {
       const conditions = fullpaid.map(fp => {
         const condition = getFullPaidMapping(fp.trim());
-        console.log('fp:', fp);
-        console.log('condition:', condition);
+
         if (condition.ATA && condition.ATA.$ne) {
           return {
             FullPaid: condition.FullPaid,
@@ -106,15 +105,13 @@ export async function GET(request: NextRequest) {
       
     }
     
-    console.log('Final query:', query);
-
     const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-
     const total = await JobStatusModel.countDocuments(query);
+
     const grandTotalAgg = await JobStatusModel.aggregate([
       { $match: query },
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },

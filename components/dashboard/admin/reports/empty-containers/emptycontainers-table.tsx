@@ -4,7 +4,7 @@
 
 import { GridPDFExport } from "@progress/kendo-react-pdf";
 import { ExcelExport } from "@progress/kendo-react-excel-export";
-import { process, GroupDescriptor  } from "@progress/kendo-data-query";
+import { process, GroupDescriptor } from "@progress/kendo-data-query";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Grid,
@@ -44,14 +44,14 @@ interface PageState {
 const initialDataState: PageState = { skip: 0, take: 10 };
 
 const initialGroup: GroupDescriptor[] = [
-    {
-        field: 'DepartmentName',
-        aggregates: [
-            { field: 'JobNo', aggregate: 'count' }, 
-            { field: 'TotalProfit', aggregate: 'sum' }
-        ],
-        dir: 'desc' // Set descending order
-    }
+  {
+    field: "DepartmentName",
+    aggregates: [
+      { field: "JobNo", aggregate: "count" },
+      { field: "TotalProfit", aggregate: "sum" },
+    ],
+    dir: "desc", // Set descending order
+  },
 ];
 
 // Helper function to format dates
@@ -302,7 +302,7 @@ const allColumns = [
     width: "100px",
     visible: false,
   },
-    {
+  {
     field: "DepartmentName",
     title: "Department",
     width: "100px",
@@ -479,11 +479,11 @@ export default function EmptyContainersComponent() {
     <>
       {/* Info Bar */}
       <div className="flex flex-col md:flex-row justify-between items-center">
-      <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
-        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
-        {pagination.pageSize}
-      </div>
+        <div className="text-xs text-muted-foreground mt-2">
+          Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+          {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+          {pagination.pageSize}
+        </div>
 
         {/* Right-aligned totals */}
         <div className="flex flex-col md:flex-row gap-4 text-sm font-medium ">
@@ -491,13 +491,21 @@ export default function EmptyContainersComponent() {
             <div className="flex items-center text-xs">
               <span>Page profit:</span>
               <span className="ml-2 font-semibold text-green-700">
-                ${totalProfitSum.toFixed(2)}
+                $
+                {totalProfitSum.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
             <div className="flex items-center text-xs">
               <span>Grand total:</span>
               <span className="ml-2 font-semibold text-blue-700">
-                ${grandTotalProfit.toFixed(2)}
+                $
+                {grandTotalProfit.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>

@@ -223,9 +223,7 @@ export default function JobStatusComponent() {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
     "All",
   ]);
-  const [fullPaidChecked, setFullPaidChecked] = useState<string[]>([
-    "All",
-  ]);
+  const [fullPaidChecked, setFullPaidChecked] = useState<string[]>(["All"]);
 
   // Initialize date range for filtering
   const [selectedDateRange, setSelectedDateRange] = useState({
@@ -366,9 +364,16 @@ export default function JobStatusComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [statusFilter, fullPaidChecked, selectedDepartments, 
-    selectedDateRange.from, selectedDateRange.to, pageState.skip, 
-    pageState.take, globalFilter]);
+  }, [
+    statusFilter,
+    fullPaidChecked,
+    selectedDepartments,
+    selectedDateRange.from,
+    selectedDateRange.to,
+    pageState.skip,
+    pageState.take,
+    globalFilter,
+  ]);
 
   useEffect(() => {
     fetchData();
@@ -463,42 +468,40 @@ export default function JobStatusComponent() {
   //   );
   // };
 
-// Status options
-const renderCheckFullpaidSelector = () => {
-  const checkedOptions = [
-    { text: "All", value: "All" },
-    { text: "Full Paid", value: "FullPaid" },
-    { text: "Not Paid", value: "NotPaid" },
-    { text: "Pendings", value: "Pendings" },
-  ];
-  return (
-    <div style={{ marginBottom: "20px", minWidth: 220 }}>
-      <MultiSelect
-        data={checkedOptions}
-        textField="text"
-        dataItemKey="value"
-        value={checkedOptions.filter(
-          (option) =>
-            fullPaidChecked.includes(option.value) &&
-            (option.value !== "All" || fullPaidChecked.length === 1)
-        )}
-        onChange={(e) => {
-          let values = e.value.map((item: any) => item.value);
-          if (values.length > 0) {
-            values = values.filter((v: string) => v !== "All");
-            setFullPaidChecked(values);
-          } else {
-            setFullPaidChecked(["All"]);
-          }
-        }}
-        placeholder="Select payment..."
-        className="w-[220px] mr-2"
-      />
-    </div>
-  );
-};
-
-
+  // Status options
+  const renderCheckFullpaidSelector = () => {
+    const checkedOptions = [
+      { text: "All", value: "All" },
+      { text: "Full Paid", value: "FullPaid" },
+      { text: "Not Paid", value: "NotPaid" },
+      { text: "Pendings", value: "Pendings" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={checkedOptions}
+          textField="text"
+          dataItemKey="value"
+          value={checkedOptions.filter(
+            (option) =>
+              fullPaidChecked.includes(option.value) &&
+              (option.value !== "All" || fullPaidChecked.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setFullPaidChecked(values);
+            } else {
+              setFullPaidChecked(["All"]);
+            }
+          }}
+          placeholder="Select payment..."
+          className="w-[220px] mr-2"
+        />
+      </div>
+    );
+  };
 
   const toggleCheckedFilter = (status: string) => {
     setFullPaidChecked([status]);
@@ -617,13 +620,21 @@ const renderCheckFullpaidSelector = () => {
             <div className="flex items-center text-xs">
               <span>Page profit:</span>
               <span className="ml-2 font-semibold text-green-700">
-                ${totalProfitSum.toFixed(2)}
+                $
+                {totalProfitSum.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
             <div className="flex items-center text-xs">
               <span>Grand total:</span>
               <span className="ml-2 font-semibold text-blue-700">
-                ${grandTotalProfit.toFixed(2)}
+                $
+                {grandTotalProfit.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
               </span>
             </div>
           </div>

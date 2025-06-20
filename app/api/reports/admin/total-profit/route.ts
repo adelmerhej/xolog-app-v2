@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
-import { TotalProfitModel } from "@/models/reports/TotalProfit"; // Adjust path accordingly
+import { TotalProfitModel } from "@/models/reports/TotalProfit";
 
 // GET /api/total-profits
 export async function GET(request: NextRequest) {
@@ -8,23 +8,24 @@ export async function GET(request: NextRequest) {
     await dbConnect();
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status"); // Optional filter by StatusType
+    const status = searchParams.get("status");
     const page = parseInt(searchParams.get("page") || "1");
     let limit = Number(searchParams.get('limit'));
     if (!limit || limit === 0) {
-      limit = 0; // 0 means no limit in mongoose
+      limit = 0;
     }
     const query: Record<string, unknown> = {};
     if (status) {
       query.StatusType = status;
     }
 
+    //Sum 
     const totalProfits = await TotalProfitModel.find(query)
-      .sort({ JobDate: 1 }) // Sort by JobDate ascending
+      .sort({ JobDate: 1 })
       .skip((page - 1) * limit)
       .limit(limit);
-
     const total = await TotalProfitModel.countDocuments(query);
+
     const grandTotalAgg = await TotalProfitModel.aggregate([
       { $match: query },
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },

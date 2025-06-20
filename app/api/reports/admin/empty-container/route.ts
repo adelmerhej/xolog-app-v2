@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     let limit = Number(searchParams.get('limit'));
     if (!limit || limit === 0) {
-      limit = 0; // 0 means no limit in mongoose
+      limit = 0;
     }
     const query: Record<string, unknown> = {};
     if (status) {

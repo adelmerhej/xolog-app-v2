@@ -17,7 +17,10 @@ import {
   DropDownButton,
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
-import { ColumnMenu, TotalProfitCell } from "@/components/data-table/custom-cells";
+import {
+  ColumnMenu,
+  TotalProfitCell,
+} from "@/components/data-table/custom-cells";
 import { ITotalProfit } from "@/types/reports/ITotalProfit";
 
 const loadingPanelMarkup = (
@@ -197,7 +200,7 @@ const allColumns = [
       },
     },
   },
-   {
+  {
     field: "Departure",
     title: "Departure",
     width: "100px",
@@ -211,7 +214,7 @@ const allColumns = [
         },
       },
     },
-  }, 
+  },
   {
     field: "Destination",
     title: "Destination",
@@ -440,41 +443,48 @@ export default function TotalProfitComponent() {
 
   return (
     <>
-      <div className="text-xs text-muted-foreground mt-2">
-        Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
-        {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
-        {pagination.pageSize}
+      {/* Info Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-center">
+        <div className="text-xs text-muted-foreground mt-2">
+          Total rows: {totalCount} | Page {pagination.pageIndex + 1} of{" "}
+          {Math.ceil(totalCount / pagination.pageSize)} | Rows per page:{" "}
+          {pagination.pageSize}
+        </div>
+
+        {/* Right-aligned totals */}
+        <div className="flex flex-col md:flex-row gap-4 text-sm font-medium ">
+          <div className="flex flex-col md:flex-row gap-4 justify-end">
+            <div className="flex items-center text-xs">
+              <span>Page profit:</span>
+              <span className="ml-2 font-semibold text-green-700">
+                $
+                {totalProfitSum.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+            <div className="flex items-center text-xs">
+              <span>Grand total:</span>
+              <span className="ml-2 font-semibold text-blue-700">
+                $
+                {grandTotalProfit.toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Buttons */}
       <div className="flex justify-between">
         <div className="flex justify-start">
-          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
+          {/* <Button onClick={fetchData} style={{ marginBottom: 20 }}>
             Reload Data
-          </Button>
+          </Button> */}
           {renderColumnSelector()}
-        </div>
-        <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-          <div className="flex items-center">
-            <span className="text-sm">Page total:</span>
-            <span className="ml-2 font-semibold text-green-700">
-              $
-              {totalProfitSum.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm">Grand total:</span>
-            <span className="ml-2 font-semibold text-blue-700">
-              $
-              {grandTotalProfit.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
         </div>
       </div>
 
@@ -502,7 +512,7 @@ export default function TotalProfitComponent() {
             info: true,
             pageSizes: [10, 50, 100, 200, 1000],
             pageSizeValue: pageSizeValue,
-          }}     
+          }}
         >
           {columns
             .filter((c) => c.visible)
