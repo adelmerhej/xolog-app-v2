@@ -172,9 +172,7 @@ const allColumns = [
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        // Show Atd when Ata is null or undefined
-        const dateToShow = dataItem.Ata || dataItem.Atd;
-        return <td>{formatDate(dateToShow)}</td>;
+        return <td>{formatDate(dataItem.Ata)}</td>;
       },
     },
     filterable: {
