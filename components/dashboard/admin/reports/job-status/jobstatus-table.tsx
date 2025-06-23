@@ -628,7 +628,7 @@ export default function JobStatusComponent() {
               </span>
             </div>
             <div className="flex items-center text-xs">
-              <span>Grand total:</span>
+              <span>Total profit:</span>
               <span className="ml-2 font-semibold text-blue-700">
                 $
                 {grandTotalProfit.toLocaleString(undefined, {

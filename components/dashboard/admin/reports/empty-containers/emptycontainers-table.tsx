@@ -593,9 +593,8 @@ export default function EmptyContainersComponent() {
         {/* Right-aligned totals */}
         <div className="flex flex-col md:flex-row gap-4 text-sm font-medium ">
           <div className="flex flex-col md:flex-row gap-4 justify-end">
-
             <div className="flex items-center text-xs">
-              <span>Total profit:</span>
+              <span>Page profit:</span>
               <span className="ml-2 font-semibold text-green-700">
                 $
                 {totalProfitSum.toLocaleString(undefined, {
@@ -604,9 +603,8 @@ export default function EmptyContainersComponent() {
                 })}
               </span>
             </div>
-
-            <div className="hidden items-center text-xs">
-              <span>Grand total:</span>
+            <div className="flex items-center text-xs">
+              <span>Total profit:</span>
               <span className="ml-2 font-semibold text-blue-700">
                 $
                 {grandTotalProfit.toLocaleString(undefined, {
@@ -615,9 +613,9 @@ export default function EmptyContainersComponent() {
                 })}
               </span>
             </div>
-
           </div>
         </div>
+
       </div>
 
       {/* Buttons */}
