@@ -459,7 +459,8 @@ export default function EmptyContainersComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
+  }, [selectedDepartments, selectedDateRange.from, selectedDateRange.to, 
+    pagination.pageIndex, pagination.pageSize, globalFilter, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -620,7 +621,7 @@ export default function EmptyContainersComponent() {
 
       {/* Buttons */}
       <div className="flex justify-between">
-        <div className="flex justify-start">
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
             {renderColumnSelector()}
           {renderDepartmentsSelector()}
           {renderCheckFullpaidSelector()} 

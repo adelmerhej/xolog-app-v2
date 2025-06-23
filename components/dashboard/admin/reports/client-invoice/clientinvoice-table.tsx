@@ -25,6 +25,7 @@ import {
   RatingCell,
   CountryCell,
 } from "@/components/data-table/custom-cells";
+import { CalendarDatePicker } from "@/components/ui/calendar-date-picker";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -160,12 +161,26 @@ export default function ClientInvoiceComponent() {
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   const [grandTotalInvoices, setGrandTotalInvoices] = useState(0);
 
+    // Initialize date range for filtering
+    const [selectedDateRange, setSelectedDateRange] = useState({
+      from: new Date(new Date().getFullYear(), 0, 1), // Jan 1st of current year
+      to: new Date(),
+    });
+
   const DATA_ITEM_KEY = "id";
 
   // Fetch data
   const fetchData = useCallback(async () => {
     try {
       setShowLoading(true);
+
+      // Format date range for API request
+      const startDate = selectedDateRange.from
+      ? formatDate(selectedDateRange.from)
+      : "";
+      const endDate = selectedDateRange.to
+      ? formatDate(selectedDateRange.to)
+      : "";
 
       const res = await fetch(
         `/api/reports/admin/client-invoice?page=${pagination.pageIndex + 1}&limit=${
@@ -178,6 +193,7 @@ export default function ClientInvoiceComponent() {
           },
         }
       );
+
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
 
@@ -206,13 +222,8 @@ export default function ClientInvoiceComponent() {
       setGrandTotalInvoices(0);
       setShowLoading(false);
     }
-  }, [
-    pagination.pageIndex,
-    pagination.pageSize,
-    invoiceFilter,
-    selectedJobsStatus,
-    globalFilter,
-  ]);
+  }, [selectedDateRange.from, selectedDateRange.to, pagination.pageIndex, 
+    pagination.pageSize, invoiceFilter, selectedJobsStatus, globalFilter]);
 
   useEffect(() => {
     fetchData();
@@ -318,11 +329,28 @@ export default function ClientInvoiceComponent() {
 
       {/* Buttons */}
       <div className="flex justify-between">
-        <div className="flex justify-start">
-          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-            Reload Data
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-between gap-4">
           {renderColumnSelector()}
+          {/* {renderDepartmentsSelector()}
+          {renderCheckFullpaidSelector()}  */}
+
+            {/* Date Range Picker */}
+            <div className="flex flex-col md:flex-row gap-4 justify-start ml-2">
+              <CalendarDatePicker
+                className="text-xs"
+                date={{
+                  from: selectedDateRange.from,
+                  to: selectedDateRange.to,
+                }}
+                onDateSelect={(range) => {
+                  setSelectedDateRange(range);
+                  fetchData();
+                }}
+                variant="outline"
+                numberOfMonths={2}
+              />
+            </div>
+            {/* END Date Range Picker*/}                   
         </div>
       </div>
 
