@@ -18,6 +18,8 @@ import {
   DropDownButtonItemClickEvent,
 } from "@progress/kendo-react-buttons";
 import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
+import { MultiSelect } from "@progress/kendo-react-dropdowns";
+import { CalendarDatePicker } from "@/components/ui/calendar-date-picker";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -345,6 +347,17 @@ export default function EmptyContainersComponent() {
     number | string | undefined
   >();
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
+  const [fullPaidChecked, setFullPaidChecked] = useState<string[]>(["All"]);
+
+  const [statusFilter, setStatusFilter] = useState<string[]>(["New"]);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
+    "All",
+  ]);
+  // Initialize date range for filtering
+  const [selectedDateRange, setSelectedDateRange] = useState({
+    from: new Date(new Date().getFullYear(), 0, 1), // Jan 1st of current year
+    to: new Date(),
+  });
 
   const data = process(jobs, { skip: page.skip, take: page.take });
 
@@ -391,11 +404,32 @@ export default function EmptyContainersComponent() {
     try {
       setShowLoading(true);
 
+      const selectedDepartmentsParam =
+      selectedDepartments.length > 0
+        ? selectedDepartments.includes("All")
+          ? ["All"]
+          : selectedDepartments
+        : ["All"];
+    const statusParam = Array.isArray(status) ? status.join(",") : status;
+
+      // Format date range for API request
+      const startDate = selectedDateRange.from
+        ? formatDate(selectedDateRange.from)
+        : "";
+      const endDate = selectedDateRange.to
+        ? formatDate(selectedDateRange.to)
+        : "";
+
+
       const res = await fetch(
         `/api/reports/admin/empty-container?
         page=${pagination.pageIndex + 1}
         &limit=${pagination.pageSize}
-        &search=${globalFilter}`,
+        &search=${globalFilter}
+        &departments=${selectedDepartmentsParam}
+        &fullpaid=${fullPaidChecked}
+        &startDate=${startDate}
+        &endDate=${endDate}`,
         {
           method: "GET",
           headers: {
@@ -461,6 +495,77 @@ export default function EmptyContainersComponent() {
     );
   };
 
+    const renderDepartmentsSelector = () => {
+      const departments = [
+        { text: "All", value: "All" },
+        { text: "Import", value: "Import" },
+        { text: "Export", value: "Export" },
+        { text: "Clearance", value: "Clearance" },
+        { text: "Land Freight", value: "Land Freight" },
+        { text: "Sea Cross", value: "Sea Cross" },
+      ];
+      return (
+        <div style={{ marginBottom: "20px", minWidth: 220 }}>
+          <MultiSelect
+            data={departments}
+            textField="text"
+            dataItemKey="value"
+            value={departments.filter(
+              (option) =>
+                selectedDepartments.includes(option.value) &&
+                (option.value !== "All" || selectedDepartments.length === 1)
+            )}
+            onChange={(e) => {
+              let values = e.value.map((item: any) => item.value);
+              if (values.length > 0) {
+                values = values.filter((v: string) => v !== "All");
+                setSelectedDepartments(values);
+              } else {
+                setSelectedDepartments(["All"]);
+              }
+            }}
+            placeholder="Select departments..."
+            className="w-[220px] mr-2"
+          />
+        </div>
+      );
+    };
+
+     // Status options
+      const renderCheckFullpaidSelector = () => {
+        const checkedOptions = [
+          { text: "All", value: "All" },
+          { text: "Full Paid", value: "FullPaid" },
+          { text: "Not Paid", value: "NotPaid" },
+          { text: "Pendings", value: "Pendings" },
+        ];
+        return (
+          <div style={{ marginBottom: "20px", minWidth: 220 }}>
+            <MultiSelect
+              data={checkedOptions}
+              textField="text"
+              dataItemKey="value"
+              value={checkedOptions.filter(
+                (option) =>
+                  fullPaidChecked.includes(option.value) &&
+                  (option.value !== "All" || fullPaidChecked.length === 1)
+              )}
+              onChange={(e) => {
+                let values = e.value.map((item: any) => item.value);
+                if (values.length > 0) {
+                  values = values.filter((v: string) => v !== "All");
+                  setFullPaidChecked(values);
+                } else {
+                  setFullPaidChecked(["All"]);
+                }
+              }}
+              placeholder="Select payment..."
+              className="w-[220px] mr-2"
+            />
+          </div>
+        );
+      };
+
   //Calculate total profit
   const totalProfitSum = useMemo(
     () =>
@@ -490,7 +595,7 @@ export default function EmptyContainersComponent() {
           <div className="flex flex-col md:flex-row gap-4 justify-end">
 
             <div className="flex items-center text-xs">
-              <span>Page profit:</span>
+              <span>Total profit:</span>
               <span className="ml-2 font-semibold text-green-700">
                 $
                 {totalProfitSum.toLocaleString(undefined, {
@@ -499,7 +604,8 @@ export default function EmptyContainersComponent() {
                 })}
               </span>
             </div>
-            <div className="flex items-center text-xs">
+
+            <div className="hidden items-center text-xs">
               <span>Grand total:</span>
               <span className="ml-2 font-semibold text-blue-700">
                 $
@@ -509,6 +615,7 @@ export default function EmptyContainersComponent() {
                 })}
               </span>
             </div>
+
           </div>
         </div>
       </div>
@@ -516,33 +623,28 @@ export default function EmptyContainersComponent() {
       {/* Buttons */}
       <div className="flex justify-between">
         <div className="flex justify-start">
-          <Button onClick={fetchData} style={{ marginBottom: 20 }}>
-            Reload Data
-          </Button>
-          {renderColumnSelector()}
+            {renderColumnSelector()}
+          {renderDepartmentsSelector()}
+          {renderCheckFullpaidSelector()} 
+
+            {/* Date Range Picker */}
+            <div className="flex flex-col md:flex-row gap-4 justify-start ml-2">
+              <CalendarDatePicker
+                className="text-xs"
+                date={{
+                  from: selectedDateRange.from,
+                  to: selectedDateRange.to,
+                }}
+                onDateSelect={(range) => {
+                  setSelectedDateRange(range);
+                  fetchData();
+                }}
+                variant="outline"
+                numberOfMonths={2}
+              />
+            </div>
+            {/* END Date Range Picker*/}                   
         </div>
-        {/* <div className="flex flex-col md:flex-row gap-2 md:gap-6">
-          <div className="flex items-center">
-            <span className="text-sm">Page total:</spakn>
-            <span className="ml-2 font-semibold text-green-700">
-              $
-              {totalProfitSum.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-sm">Grand total:</span>
-            <span className="ml-2 font-semibold text-blue-700">
-              $
-              {grandTotalProfit.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-        </div> */}
       </div>
 
       {/* GRID */}

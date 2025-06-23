@@ -33,6 +33,7 @@ export interface IEmptyContainer extends Document {
   TotalInvoices: number;
   TotalCosts: number;
   TotalProfit: number;
+  StatusType: string;
   createdAt: Date;
   updatedAt: Date;
 }

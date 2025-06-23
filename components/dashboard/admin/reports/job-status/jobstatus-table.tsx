@@ -667,6 +667,8 @@ export default function JobStatusComponent() {
                 numberOfMonths={2}
               />
             </div>
+            {/* END Date Range Picker*/}
+            
           </div>
         </div>
       </div>
