@@ -405,12 +405,12 @@ export default function EmptyContainersComponent() {
       setShowLoading(true);
 
       const selectedDepartmentsParam =
-      selectedDepartments.length > 0
-        ? selectedDepartments.includes("All")
-          ? ["All"]
-          : selectedDepartments
-        : ["All"];
-    const statusParam = Array.isArray(status) ? status.join(",") : status;
+        selectedDepartments.length > 0
+          ? selectedDepartments.includes("All")
+            ? ["All"]
+            : selectedDepartments
+          : ["All"];
+      const statusParam = Array.isArray(statusFilter) ? statusFilter.join(",") : statusFilter;
 
       // Format date range for API request
       const startDate = selectedDateRange.from
@@ -419,7 +419,6 @@ export default function EmptyContainersComponent() {
       const endDate = selectedDateRange.to
         ? formatDate(selectedDateRange.to)
         : "";
-
 
       const res = await fetch(
         `/api/reports/admin/empty-container?
@@ -459,8 +458,9 @@ export default function EmptyContainersComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [selectedDepartments, selectedDateRange.from, selectedDateRange.to, 
-    pagination.pageIndex, pagination.pageSize, globalFilter, fullPaidChecked]);
+  }, [selectedDepartments, statusFilter, selectedDateRange.from, 
+    selectedDateRange.to, pagination.pageIndex, pagination.pageSize, 
+    globalFilter, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -496,76 +496,76 @@ export default function EmptyContainersComponent() {
     );
   };
 
-    const renderDepartmentsSelector = () => {
-      const departments = [
-        { text: "All", value: "All" },
-        { text: "Import", value: "Import" },
-        { text: "Export", value: "Export" },
-        { text: "Clearance", value: "Clearance" },
-        { text: "Land Freight", value: "Land Freight" },
-        { text: "Sea Cross", value: "Sea Cross" },
-      ];
-      return (
-        <div style={{ marginBottom: "20px", minWidth: 220 }}>
-          <MultiSelect
-            data={departments}
-            textField="text"
-            dataItemKey="value"
-            value={departments.filter(
-              (option) =>
-                selectedDepartments.includes(option.value) &&
-                (option.value !== "All" || selectedDepartments.length === 1)
-            )}
-            onChange={(e) => {
-              let values = e.value.map((item: any) => item.value);
-              if (values.length > 0) {
-                values = values.filter((v: string) => v !== "All");
-                setSelectedDepartments(values);
-              } else {
-                setSelectedDepartments(["All"]);
-              }
-            }}
-            placeholder="Select departments..."
-            className="w-[220px] mr-2"
-          />
-        </div>
-      );
-    };
+  const renderDepartmentsSelector = () => {
+    const departments = [
+      { text: "All", value: "All" },
+      { text: "Import", value: "Import" },
+      { text: "Export", value: "Export" },
+      { text: "Clearance", value: "Clearance" },
+      { text: "Land Freight", value: "Land Freight" },
+      { text: "Sea Cross", value: "Sea Cross" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={departments}
+          textField="text"
+          dataItemKey="value"
+          value={departments.filter(
+            (option) =>
+              selectedDepartments.includes(option.value) &&
+              (option.value !== "All" || selectedDepartments.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setSelectedDepartments(values);
+            } else {
+              setSelectedDepartments(["All"]);
+            }
+          }}
+          placeholder="Select departments..."
+          className="w-[220px] mr-2"
+        />
+      </div>
+    );
+  };
 
-     // Status options
-      const renderCheckFullpaidSelector = () => {
-        const checkedOptions = [
-          { text: "All", value: "All" },
-          { text: "Full Paid", value: "FullPaid" },
-          { text: "Not Paid", value: "NotPaid" },
-          { text: "Pendings", value: "Pendings" },
-        ];
-        return (
-          <div style={{ marginBottom: "20px", minWidth: 220 }}>
-            <MultiSelect
-              data={checkedOptions}
-              textField="text"
-              dataItemKey="value"
-              value={checkedOptions.filter(
-                (option) =>
-                  fullPaidChecked.includes(option.value) &&
-                  (option.value !== "All" || fullPaidChecked.length === 1)
-              )}
-              onChange={(e) => {
-                let values = e.value.map((item: any) => item.value);
-                if (values.length > 0) {
-                  values = values.filter((v: string) => v !== "All");
-                  setFullPaidChecked(values);
-                } else {
-                  setFullPaidChecked(["All"]);
-                }
-              }}
-              placeholder="Select payment..."
-              className="w-[220px] mr-2"
-            />
-          </div>
-        );
-      };
+  // Status options
+  const renderCheckFullpaidSelector = () => {
+    const checkedOptions = [
+      { text: "All", value: "All" },
+      { text: "Full Paid", value: "FullPaid" },
+      { text: "Not Paid", value: "NotPaid" },
+      { text: "Pendings", value: "Pendings" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={checkedOptions}
+          textField="text"
+          dataItemKey="value"
+          value={checkedOptions.filter(
+            (option) =>
+              fullPaidChecked.includes(option.value) &&
+              (option.value !== "All" || fullPaidChecked.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setFullPaidChecked(values);
+            } else {
+              setFullPaidChecked(["All"]);
+            }
+          }}
+          placeholder="Select payment..."
+          className="w-[220px] mr-2"
+        />
+      </div>
+    );
+  };
 
   //Calculate total profit
   const totalProfitSum = useMemo(
@@ -616,33 +616,32 @@ export default function EmptyContainersComponent() {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Buttons */}
       <div className="flex justify-between">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
-            {renderColumnSelector()}
+          {renderColumnSelector()}
           {renderDepartmentsSelector()}
-          {renderCheckFullpaidSelector()} 
+          {renderCheckFullpaidSelector()}
 
-            {/* Date Range Picker */}
-            <div className="flex flex-col md:flex-row gap-4 justify-start ml-2">
-              <CalendarDatePicker
-                className="text-xs"
-                date={{
-                  from: selectedDateRange.from,
-                  to: selectedDateRange.to,
-                }}
-                onDateSelect={(range) => {
-                  setSelectedDateRange(range);
-                  fetchData();
-                }}
-                variant="outline"
-                numberOfMonths={2}
-              />
-            </div>
-            {/* END Date Range Picker*/}                   
+          {/* Date Range Picker */}
+          <div className="flex flex-col md:flex-row gap-4 justify-start ml-2">
+            <CalendarDatePicker
+              className="text-xs"
+              date={{
+                from: selectedDateRange.from,
+                to: selectedDateRange.to,
+              }}
+              onDateSelect={(range) => {
+                setSelectedDateRange(range);
+                fetchData();
+              }}
+              variant="outline"
+              numberOfMonths={2}
+            />
+          </div>
+          {/* END Date Range Picker*/}
         </div>
       </div>
 

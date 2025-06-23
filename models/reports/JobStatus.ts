@@ -23,6 +23,10 @@ interface IJobStatus extends Document {
   ATA?: Date;
   ETA?: Date;
   FullPaid?: boolean; // Optional field for full paid status
+  PaidDO?: boolean;
+  PaidDate?: Date;
+  MissingDocuments?: boolean;
+  MissingDocumentsDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -129,6 +133,20 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
     FullPaid: {
       type: Boolean,
       default: false, // Default to false if not specified
+    },
+    PaidDO: {
+      type: Boolean,
+      default: false, // Default to false if not specified
+    },
+    PaidDate: {
+      type: Date,
+    },
+    MissingDocuments: {
+      type: Boolean,
+      default: false, // Default to false if not specified
+    },
+    MissingDocumentsDate: {
+      type: Date,
     },
   },
   { timestamps: true, collection: "jobstatus" }

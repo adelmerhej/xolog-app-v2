@@ -28,6 +28,11 @@ interface IEmptyContainer extends Document {
   DiffCntrToCnee: number;
   Departure: string;
   Destination: string;
+  FullPaid: boolean;
+  PaidDO: boolean;
+  PaidDate?: Date;
+  MissingDocuments: boolean;
+  MissingDocumentsDate?: Date;
   TotalInvoices: number;
   TotalCosts: number;
   TotalProfit: number;
@@ -148,6 +153,26 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     Destination: {
       type: String,
       default: "",
+    },
+    FullPaid: {
+      type: Boolean,
+      default: false,
+    },
+    PaidDO: {
+      type: Boolean,
+      default: false,
+    },
+    PaidDate: {
+      type: Date,
+      default: Date.now,
+    },
+    MissingDocuments: {
+      type: Boolean,
+      default: false,
+    },
+    MissingDocumentsDate: {
+      type: Date,
+      default: Date.now,
     },
     TotalInvoices: {
       type: Number,

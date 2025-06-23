@@ -26,6 +26,7 @@ export interface IEmptyContainer extends Document {
   DiffCntrToCnee: number;
   Departure: string;
   Destination: string;
+  FullPaid: boolean;  
   PaidDO: boolean;
 	PaidDate?: Date;
 	MissingDocuments: boolean;

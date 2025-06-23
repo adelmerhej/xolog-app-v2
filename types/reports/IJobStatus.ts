@@ -21,6 +21,10 @@ export interface IJobStatus extends Document {
   ATA: Date;
   ETA: Date;
   FullPaid?: boolean;
+  PaidDO?: boolean;
+  PaidDate?: Date;
+  MissingDocuments?: boolean;
+  MissingDocumentsDate?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
