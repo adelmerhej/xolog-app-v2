@@ -111,37 +111,37 @@ export async function GET(request: NextRequest) {
     console.log("endDate", endDateParam);
 
     // Validate dates
-    let startDate: Date | undefined;
-    let endDate: Date | undefined;
+    // let startDate: Date | undefined;
+    // let endDate: Date | undefined;
 
-    if (startDateParam) {
-      const parsedStartDate = new Date(startDateParam);
-      if (!isNaN(parsedStartDate.getTime())) {
-        // Check if the date is valid
-        startDate = parsedStartDate;
-      }
-    }
+    // if (startDateParam) {
+    //   const parsedStartDate = new Date(startDateParam);
+    //   if (!isNaN(parsedStartDate.getTime())) {
+    //     // Check if the date is valid
+    //     startDate = parsedStartDate;
+    //   }
+    // }
 
-    if (endDateParam) {
-      const parsedEndDate = new Date(endDateParam);
-      if (!isNaN(parsedEndDate.getTime())) {
-        // Check if the date is valid
-        endDate = parsedEndDate;
-      }
-    }
+    // if (endDateParam) {
+    //   const parsedEndDate = new Date(endDateParam);
+    //   if (!isNaN(parsedEndDate.getTime())) {
+    //     // Check if the date is valid
+    //     endDate = parsedEndDate;
+    //   }
+    // }
 
-    if (startDate && endDate) {
-      query.JobDate = {
-        $gte: startDate,
-        $lte: endDate,
-      };
-    } else if (startDate) {
-      // Handle case where only start date is provided
-      query.JobDate = { $gte: startDate };
-    } else if (endDate) {
-      // Handle case where only end date is provided
-      query.JobDate = { $lte: endDate };
-    }
+    // if (startDate && endDate) {
+    //   query.JobDate = {
+    //     $gte: startDate,
+    //     $lte: endDate,
+    //   };
+    // } else if (startDate) {
+    //   // Handle case where only start date is provided
+    //   query.JobDate = { $gte: startDate };
+    // } else if (endDate) {
+    //   // Handle case where only end date is provided
+    //   query.JobDate = { $lte: endDate };
+    // }
 
     const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
     if (limit > 0) {

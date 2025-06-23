@@ -63,11 +63,20 @@ const formatDate = (dateString: string | Date | null | undefined): string => {
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
 
-  const day = date.getDate().toString().padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
 
-  return `${day}/${month}/${year}`;
+  return `${year}-${month}-${day}`; // Change to YYYY-MM-DD
+};
+
+const formatDateForAPI = (dateString: string | Date | null | undefined): string => {
+  if (!dateString) return "";
+  
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  
+  return date.toISOString().split('T')[0]; // Returns "YYYY-MM-DD"
 };
 
 // Define all possible columns
@@ -414,11 +423,11 @@ export default function EmptyContainersComponent() {
 
       // Format date range for API request
       const startDate = selectedDateRange.from
-        ? formatDate(selectedDateRange.from)
-        : "";
-      const endDate = selectedDateRange.to
-        ? formatDate(selectedDateRange.to)
-        : "";
+      ? formatDateForAPI(selectedDateRange.from)
+      : "";
+    const endDate = selectedDateRange.to
+      ? formatDateForAPI(selectedDateRange.to)
+      : "";
 
       const res = await fetch(
         `/api/reports/admin/empty-container?
@@ -499,11 +508,14 @@ export default function EmptyContainersComponent() {
   const renderDepartmentsSelector = () => {
     const departments = [
       { text: "All", value: "All" },
-      { text: "Import", value: "Import" },
-      { text: "Export", value: "Export" },
-      { text: "Clearance", value: "Clearance" },
-      { text: "Land Freight", value: "Land Freight" },
-      { text: "Sea Cross", value: "Sea Cross" },
+      { text: "AIR IMPORT", value: "AIR IMPORT" },  
+      { text: "AIR EXPORT", value: "AIR EXPORT" },
+      { text: "AIR CLEARANCE", value: "AIR CLEARANCE" },
+      { text: "SEA IMPORT", value: "SEA IMPORT" },
+      { text: "SEA EXPORT", value: "SEA EXPORT" },
+      { text: "SEA CLEARANCE", value: "SEA CLEARANCE" },
+      { text: "LAND FREIGHT", value: "LAND FREIGHT" },
+      { text: "SEA CROSS", value: "SEA CROSS" },
     ];
     return (
       <div style={{ marginBottom: "20px", minWidth: 220 }}>

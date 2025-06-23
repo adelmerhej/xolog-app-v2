@@ -5,7 +5,7 @@ interface IEmptyContainer extends Document {
   JobNo: string;
   ReferenceNo: string;
   JobDate: Date;
-  DepartmentId: string;
+  DepartmentId: number;
   DepartmentName: string;
   CustomerName: string;
   ContainerToCnee: string;
@@ -62,8 +62,8 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
       default: Date.now,
     },
     DepartmentId: {
-      type: String,
-      default: "",
+      type: Number,
+      default: 0,
     },
     DepartmentName: {
       type: String,

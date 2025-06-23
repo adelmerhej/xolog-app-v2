@@ -3,7 +3,7 @@ export interface IEmptyContainer extends Document {
   JobNo: string;
   ReferenceNo: string;
   JobDate: Date;
-  DepartmentId: string;
+  DepartmentId: number;
   DepartmentName: string;
   CustomerName: string;
   ContainerToCnee: string;

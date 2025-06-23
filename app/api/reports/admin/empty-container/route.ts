@@ -5,15 +5,21 @@ import { EmptyContainerModel } from "@/models/reports/EmptyContainer";
 
 function getDepartmentMapping(department: string) {
   switch (department) {
-    case "Import":
-      return { ids: [5, 16] };
-    case "Export":
-      return { ids: [2, 18] };
-    case "Clearance":
-      return { ids: [8, 17] };
-    case "Land Freight":
+    case "AIR EXPORT":
+      return { ids: [2] };
+    case "AIR IMPORT":
+      return { ids: [5] };
+    case "LAND FREIGHT":
       return { ids: [6] };
-    case "Sea Cross":
+    case "AIR CLEARANCE":
+      return { ids: [8] };
+    case "SEA IMPORT":
+      return { ids: [16] };
+    case "SEA CLEARANCE":
+      return { ids: [17] };
+    case "SEA EXPORT":
+      return { ids: [18] };
+    case "SEA CROSS":
       return { ids: [6], specialCondition: { id: 6, jobType: 3 } };
     default:
       return { ids: [2, 5, 6, 8, 16, 17, 18] };
@@ -22,11 +28,11 @@ function getDepartmentMapping(department: string) {
 
 function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true, ATA: null };
+    return { FullPaid: true, Ata: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false, ATA: null };
+    return { FullPaid: false, Ata: null };
   } else if (fullpaid.toLowerCase() === "pendings") {
-    return { FullPaid: false, ATA: { $ne: null, $lte: new Date() } };
+    return { FullPaid: false, Ata: { $ne: null, $lte: new Date() } };
   }
   return {};
 }
@@ -45,23 +51,11 @@ export async function GET(request: NextRequest) {
       searchParams.get("fullpaid")?.trim()?.split(",").filter(Boolean) || [];
     const departments =
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
-    const statuses =
-      searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
     const startDateParam = searchParams.get("startDate")?.trim() || "";
     const endDateParam = searchParams.get("endDate")?.trim() || "";
 
     // Build mongoose query
     const query: any = {};
-
-    if (statuses.length > 0) {
-      query.StatusType = { $in: statuses };
-    }
-
-    console.log("fullpaid", fullpaid);
-    console.log("departments", departments);
-    console.log("statuses", statuses);
-    console.log("startDateParam", startDateParam);
-    console.log("endDateParam", endDateParam);
 
     if (departments.length > 0) {
       const conditions = departments.map((dept) => {
@@ -92,43 +86,48 @@ export async function GET(request: NextRequest) {
     }
 
     // Apply FullPaid filter
-    // if (fullpaid.length > 0) {
-    //   const conditions = fullpaid.map((fp) => {
-    //     const condition = getFullPaidMapping(fp.trim());
+    if (fullpaid.length > 0) {
+      const conditions = fullpaid.map((fp) => {
+        const condition = getFullPaidMapping(fp.trim());
+        
+        if (condition.Ata && condition.Ata.$ne) {
+          return {
+            FullPaid: condition.FullPaid,
+            Ata: condition.Ata,
+          };
+        }
+        return condition;
+      });
 
-    //     if (condition.ATA && condition.ATA.$ne) {
-    //       return {
-    //         FullPaid: condition.FullPaid,
-    //         ATA: condition.ATA,
-    //       };
-    //     }
-    //     return condition;
-    //   });
+      if (conditions.length === 1) {
+        Object.assign(query, conditions[0]);
+      } else {
+        query.$or = conditions;
+      }
+    }
 
-    //   if (conditions.length === 1) {
-    //     Object.assign(query, conditions[0]);
-    //   } else {
-    //     query.$or = conditions;
-    //   }
-    // }
-
+    // Validate dates and apply to query
     // Validate dates
     // let startDate: Date | undefined;
     // let endDate: Date | undefined;
 
     // if (startDateParam) {
-    //   const parsedStartDate = new Date(startDateParam);
-    //   if (!isNaN(parsedStartDate.getTime())) {
-    //     // Check if the date is valid
-    //     startDate = parsedStartDate;
+    //   startDate = new Date(startDateParam);
+    //   if (isNaN(startDate.getTime())) {
+    //     startDate = undefined;
+    //   } else {
+    //     // Set to start of day
+    //     startDate.setHours(0, 0, 0, 0);
     //   }
     // }
 
     // if (endDateParam) {
-    //   const parsedEndDate = new Date(endDateParam);
-    //   if (!isNaN(parsedEndDate.getTime())) {
-    //     // Check if the date is valid
-    //     endDate = parsedEndDate;
+    //   endDate = new Date(endDateParam);
+    //   if (isNaN(endDate.getTime())) {
+    //     endDate = undefined;
+    //   } else {
+    //     // Set to end of day
+    //     endDate.setHours(23, 59, 59, 999);
     //   }
     // }
 
@@ -138,20 +137,18 @@ export async function GET(request: NextRequest) {
     //     $lte: endDate,
     //   };
     // } else if (startDate) {
-    //   // Handle case where only start date is provided
     //   query.JobDate = { $gte: startDate };
     // } else if (endDate) {
-    //   // Handle case where only end date is provided
     //   query.JobDate = { $lte: endDate };
     // }
-
+    
     const emptyContainers = await EmptyContainerModel.find(query)
       .sort({ JobDate: 1 })
       .skip((page - 1) * limit)
       .limit(limit);
 
     const total = await EmptyContainerModel.countDocuments(query);
-
+    
     if (emptyContainers.length === 0) {
       return NextResponse.json({
         success: false,
