@@ -42,27 +42,11 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
     // Add parameters dynamically
     for (const [key, value] of Object.entries(params)) {
       request.input(key, value);
-      //console.log(`Added parameter: ${key} =`, value);
     }
 
-    //console.time(`SQL execution time for ${procedureName}`);
     const result = await request.query(`EXEC ${procedureName}`);
-    console.log("result", result);
-    //console.timeEnd(`SQL execution time for ${procedureName}`);
-
-    // console.log(`SQL result object structure for ${procedureName}:`, {
-    //   recordsets: result.recordsets?.length,
-    //   recordset: result.recordset?.length,
-    //   output: Object.keys(result.output || {}),
-    //   rowsAffected: result.rowsAffected
-    // });
-
-    // Get the first column name (which will be the JSON_F52E2B61-... column)
     const jsonColumn = Object.keys(result.recordset[0])[0];
     const jsonResult = result.recordset[0][jsonColumn];
-
-    // Log the raw JSON result
-    //console.log(`JSON result from ${procedureName}:`, jsonResult);
 
     if (jsonResult === undefined || jsonResult === null) {
       throw new Error(`Procedure ${procedureName} returned undefined or null JSON`);
@@ -114,7 +98,7 @@ async function saveToMongoDB(collectionName: string, data: any[],
       try {
         await mongoClient.connect();
         isConnected = true;
-        //console.log(`Successfully connected to MongoDB at ${mongoConfig.uri}`);
+
       } catch (connectError) {
         retryCount++;
         console.error(`Failed to connect to MongoDB (attempt ${retryCount}/${maxRetries}):`, connectError);
@@ -189,7 +173,7 @@ async function saveToMongoDB(collectionName: string, data: any[],
     try {
       if (mongoClient) {
         await mongoClient.close();
-        //console.log(`Disconnected from MongoDB`);
+        console.log(`Disconnected from MongoDB`);
       }
     } catch (disconnectError) {
       console.error('Error disconnecting from MongoDB:', disconnectError);

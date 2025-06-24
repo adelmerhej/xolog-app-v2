@@ -63,53 +63,53 @@ export async function GET(request: NextRequest) {
       query.StatusType = { $in: statuses };
     }
 
-    if (departments.length > 0) {
-      const conditions = departments.map((dept) => {
-        const { ids, specialCondition } = getDepartmentMapping(dept.trim());
+    // if (departments.length > 0) {
+    //   const conditions = departments.map((dept) => {
+    //     const { ids, specialCondition } = getDepartmentMapping(dept.trim());
 
-        if (specialCondition) {
-          return {
-            $or: [
-              { DepartmentId: { $in: ids } },
-              {
-                $and: [
-                  { DepartmentId: specialCondition.id },
-                  { JobType: specialCondition.jobType },
-                ],
-              },
-            ],
-          };
-        }
-        return { DepartmentId: { $in: ids } };
-      });
+    //     if (specialCondition) {
+    //       return {
+    //         $or: [
+    //           { DepartmentId: { $in: ids } },
+    //           {
+    //             $and: [
+    //               { DepartmentId: specialCondition.id },
+    //               { JobType: specialCondition.jobType },
+    //             ],
+    //           },
+    //         ],
+    //       };
+    //     }
+    //     return { DepartmentId: { $in: ids } };
+    //   });
 
-      // if there are multiple departments
-      if (conditions.length === 1) {
-        Object.assign(query, conditions[0]);
-      } else {
-        query.$or = conditions;
-      }
-    }
+    //   // if there are multiple departments
+    //   if (conditions.length === 1) {
+    //     Object.assign(query, conditions[0]);
+    //   } else {
+    //     query.$or = conditions;
+    //   }
+    // }
 
     // Apply FullPaid filter
-    if (fullpaid.length > 0) {
-      const conditions = fullpaid.map((fp) => {
-        const condition = getFullPaidMapping(fp.trim());
+    // if (fullpaid.length > 0) {
+    //   const conditions = fullpaid.map((fp) => {
+    //     const condition = getFullPaidMapping(fp.trim());
 
-        if (condition.FullPaid) {
-          return {
-            FullPaid: condition.FullPaid,
-          };
-        }
-        return condition;
-      });
+    //     if (condition.FullPaid) {
+    //       return {
+    //         FullPaid: condition.FullPaid,
+    //       };
+    //     }
+    //     return condition;
+    //   });
 
-      if (conditions.length === 1) {
-        Object.assign(query, conditions[0]);
-      } else {
-        query.$or = conditions;
-      }
-    }
+    //   if (conditions.length === 1) {
+    //     Object.assign(query, conditions[0]);
+    //   } else {
+    //     query.$or = conditions;
+    //   }
+    // }
 
     // Validate dates
     // let startDate: Date | undefined;
@@ -144,15 +144,14 @@ export async function GET(request: NextRequest) {
     //   query.JobDate = { $lte: endDate };
     // }
 
-    const totalProfitsQuery = JobOngoingModel.find(query).sort({ JobDate: 1 });
+    const totalProfitsQuery = JobOngoingModel.find();
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-    const total = await JobOngoingModel.countDocuments(query);
+    const total = await JobOngoingModel.countDocuments();
 
     const grandTotalAgg = await JobOngoingModel.aggregate([
-      { $match: query },
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
     ]);
     const grandTotalProfit = grandTotalAgg[0]?.total || 0;
