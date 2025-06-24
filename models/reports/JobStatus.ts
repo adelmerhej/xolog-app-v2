@@ -55,7 +55,6 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
     JobNo: {
       type: String,
       required: [true, "JobNo is required"],
-      unique: true,
       maxlength: [50, "JobNo cannot exceed 50 characters"],
     },
     ReferenceNo: {
