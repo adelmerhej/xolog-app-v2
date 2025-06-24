@@ -28,9 +28,9 @@ function getDepartmentMapping(department: string) {
 
 function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true, Ata: null };
+    return { FullPaid: true };
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false, Ata: null };
+    return { FullPaid: false };
   }
   return {};
 }
