@@ -142,7 +142,7 @@ export async function GET(request: NextRequest) {
         query.$or = conditions;
       }
     }
-    console.log("query", query);  
+    
 
     // Validate dates
     // let startDate: Date | undefined;
