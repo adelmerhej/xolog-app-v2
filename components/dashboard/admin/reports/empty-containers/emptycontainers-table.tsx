@@ -67,7 +67,7 @@ const formatDate = (dateString: string | Date | null | undefined): string => {
   const month = (date.getMonth() + 1).toString().padStart(2, "0");
   const day = date.getDate().toString().padStart(2, "0");
 
-  return `${year}-${month}-${day}`; // Change to YYYY-MM-DD
+  return `${year}-${month}-${day}`;
 };
 
 const formatDateForAPI = (dateString: string | Date | null | undefined): string => {
@@ -76,7 +76,7 @@ const formatDateForAPI = (dateString: string | Date | null | undefined): string 
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
   
-  return date.toISOString().split('T')[0]; // Returns "YYYY-MM-DD"
+  return date.toISOString().split('T')[0];
 };
 
 // Define all possible columns

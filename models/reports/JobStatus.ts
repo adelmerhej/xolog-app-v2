@@ -65,7 +65,6 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
     },
     JobDate: {
       type: Date,
-      default: Date.now,
     },
     OperatingUserId: {
       type: String,

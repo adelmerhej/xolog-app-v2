@@ -27,15 +27,12 @@ const ClientSchema: Schema<IClient> = new Schema(
     },
     ActiveDate: {
       type: Date,
-      default: Date.now,
     },
     FollowupDate: {
       type: Date,
-      default: Date.now,
     },
     CnssExpiryDate: {
       type: Date,
-      default: Date.now,
     },
     Country: {
       type: String,

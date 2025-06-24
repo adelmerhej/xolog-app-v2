@@ -33,7 +33,6 @@ const TotalProfitSchema: Schema<ITotalProfit> = new Schema(
     },
     JobDate: {
       type: Date,
-      default: Date.now,
     },
     CustomerName: {
       type: String,

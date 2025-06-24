@@ -59,7 +59,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     JobDate: {
       type: Date,
-      default: Date.now,
     },
     DepartmentId: {
       type: Number,
@@ -80,7 +79,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     dtCntrToCnee: {
       type: Date,
-      default: Date.now,
     },
     EmptyContainer: {
       type: String,
@@ -88,7 +86,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     dtEmptyCntr: {
       type: Date,
-      default: Date.now,
     },
     UserName: {
       type: String,
@@ -108,11 +105,9 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     Atd: {
       type: Date,
-      default: Date.now,
     },
     Ata: {
       type: Date,
-      default: Date.now,
     },
     Status: {
       type: String,
@@ -128,7 +123,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     TejrimDate: {
       type: Date,
-      default: Date.now,
     },
     CarrierName: {
       type: String,
@@ -164,7 +158,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     PaidDate: {
       type: Date,
-      default: Date.now,
     },
     MissingDocuments: {
       type: Boolean,
@@ -172,7 +165,6 @@ const EmptyContainerSchema: Schema<IEmptyContainer> = new Schema(
     },
     MissingDocumentsDate: {
       type: Date,
-      default: Date.now,
     },
     TotalInvoices: {
       type: Number,
