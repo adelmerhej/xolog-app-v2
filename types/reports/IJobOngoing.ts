@@ -1,0 +1,30 @@
+export interface IJobOngoing extends Document {
+    DepartmentName: string;
+    StatusType: string;
+    TotalProfit: number;
+    OrderBy: string;
+    JobNo: string;
+    ReferenceNo: string;
+    JobDate: Date;
+    OperatingUserId: string;
+    DepartmentId: string;
+    UserName: string;
+    CustomerName: string;
+    PendingInvoices: number;
+    PendingCosts: number;
+    Tejrim: string;
+    CanceledJob: boolean;
+    ConsigneeName: string;
+    PaymentDate: Date;
+    MemberOf: string;
+    JobType: string;
+    Ata?: Date;
+    Eta?: Date;
+    FullPaid?: boolean;
+    PaidDO?: boolean;
+    PaidDate?: Date;
+    MissingDocuments?: boolean;
+    MissingDocumentsDate?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  }

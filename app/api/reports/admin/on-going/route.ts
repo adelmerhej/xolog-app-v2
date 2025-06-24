@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
-import { JobStatusModel } from "@/models/reports/JobOngoing";
+import { JobOngoingModel } from "@/models/reports/JobOngoing";
+
+interface FullPaidCondition {
+  FullPaid: boolean;
+  Ata: null | { $ne: any };
+}
 
 function getDepartmentMapping(department: string) {
   switch (department) {
@@ -26,13 +31,13 @@ function getDepartmentMapping(department: string) {
   }
 }
 
-function getFullPaidMapping(fullpaid: string) {
+function getFullPaidMapping(fullpaid: string): FullPaidCondition {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true, ATA: null };
+    return { FullPaid: true, Ata: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false, ATA: null };
+    return { FullPaid: false, Ata: null };
   } 
-  return {};
+  return { FullPaid: false, Ata: null }; // Default case
 }
 
 export async function GET(request: NextRequest) {
@@ -147,14 +152,14 @@ export async function GET(request: NextRequest) {
     //   query.JobDate = { $lte: endDate };
     // }
 
-    const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
+    const totalProfitsQuery = JobOngoingModel.find(query).sort({ JobDate: 1 });
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-    const total = await JobStatusModel.countDocuments(query);
+    const total = await JobOngoingModel.countDocuments(query);
 
-    const grandTotalAgg = await JobStatusModel.aggregate([
+    const grandTotalAgg = await JobOngoingModel.aggregate([
       { $match: query },
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
     ]);

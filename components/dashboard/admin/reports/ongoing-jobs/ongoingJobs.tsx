@@ -19,7 +19,7 @@ import {
 } from "@progress/kendo-react-buttons";
 import { Checkbox } from "@progress/kendo-react-inputs";
 import { DropDownList, MultiSelect } from "@progress/kendo-react-dropdowns";
-import { IJobStatus } from "@/types/reports/IJobStatus";
+import { IJobOngoing } from "@/types/reports/IJobOngoing";
 import {
   TotalsCell,
   ColumnMenu,
@@ -207,7 +207,7 @@ const allColumns = [
 
 export default function OngoingJobComponent() {
   const gridRef = React.useRef<HTMLDivElement>(null);
-  const [jobs, setJobs] = useState<IJobStatus[]>([]);
+  const [jobs, setJobs] = useState<IJobOngoing[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [pageState, setPageState] = React.useState<PageState>(initialDataState);
@@ -715,7 +715,7 @@ export default function OngoingJobComponent() {
                       if (!dataItem || !field) return null;
                       return (
                         <td style={{ fontSize: "0.75rem", padding: "4px 8px" }}>
-                          {dataItem[field as keyof IJobStatus]}
+                          {dataItem[field as keyof IJobOngoing]}
                         </td>
                       );
                     },

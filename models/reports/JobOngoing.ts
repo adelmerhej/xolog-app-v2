@@ -31,7 +31,7 @@ interface IJobOngoingModel extends Document {
   updatedAt: Date;
 }
 
-const JobStatusSchema: Schema<IJobOngoingModel> = new Schema(
+const JobOngoingSchema: Schema<IJobOngoingModel> = new Schema(
   {
     DepartmentName: {
       type: String,
@@ -148,20 +148,20 @@ const JobStatusSchema: Schema<IJobOngoingModel> = new Schema(
       type: Date,
     },
   },
-  { timestamps: true, collection: "jobstatus" }
+  { timestamps: true, collection: "ongoingjobs" }
 );
 
 
 // Add indexes for better performance
-JobStatusSchema.index({ CustomerName: 1 });
-JobStatusSchema.index({ StatusType: 1 });
-JobStatusSchema.index({ JobDate: 1 });
-JobStatusSchema.index({ JobType: 1 });
+JobOngoingSchema.index({ CustomerName: 1 });
+JobOngoingSchema.index({ StatusType: 1 });
+JobOngoingSchema.index({ JobDate: 1 });
+JobOngoingSchema.index({ JobType: 1 });
 
 // Virtual for checking if job is overdue (ETA has passed)
-JobStatusSchema.virtual('isOverdue').get(function() {
+JobOngoingSchema.virtual('isOverdue').get(function() {
   return this.Ata && this.Ata < new Date();
 });
 
-export const JobStatusModel: Model<IJobOngoingModel> =
-  mongoose.models.Job || mongoose.model<IJobOngoingModel>("Job", JobStatusSchema);
+export const JobOngoingModel: Model<IJobOngoingModel> =
+  mongoose.models.Job || mongoose.model<IJobOngoingModel>("Job", JobOngoingSchema);
