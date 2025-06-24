@@ -474,7 +474,6 @@ export default function JobStatusComponent() {
       { text: "All", value: "All" },
       { text: "Full Paid", value: "FullPaid" },
       { text: "Not Paid", value: "NotPaid" },
-      { text: "Pendings", value: "Pendings" },
     ];
     return (
       <div style={{ marginBottom: "20px", minWidth: 220 }}>

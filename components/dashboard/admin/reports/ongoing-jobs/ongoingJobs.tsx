@@ -103,7 +103,7 @@ const allColumns = [
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.Ata)}</td>;
+        return <td>{formatDate(dataItem.ATA)}</td>;
       },
     },
   },
@@ -115,7 +115,7 @@ const allColumns = [
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.Eta)}</td>;
+        return <td>{formatDate(dataItem.ETA)}</td>;
       },
     },
   },
@@ -474,7 +474,6 @@ export default function OngoingJobComponent() {
       { text: "All", value: "All" },
       { text: "Full Paid", value: "FullPaid" },
       { text: "Not Paid", value: "NotPaid" },
-      { text: "Pendings", value: "Pendings" },
     ];
     return (
       <div style={{ marginBottom: "20px", minWidth: 220 }}>

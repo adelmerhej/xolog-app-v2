@@ -22,11 +22,9 @@ function getDepartmentMapping(department: string) {
 
 function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true, ATA: null };
+    return { FullPaid: true, Ata: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false, ATA: null };
-  } else if (fullpaid.toLowerCase() === "pendings") {
-    return { FullPaid: false, ATA: { $ne: null, $lte: new Date() } };
+    return { FullPaid: false, Ata: null };
   }
   return {};
 }
@@ -91,10 +89,9 @@ export async function GET(request: NextRequest) {
       const conditions = fullpaid.map((fp) => {
         const condition = getFullPaidMapping(fp.trim());
 
-        if (condition.ATA && condition.ATA.$ne) {
+        if (condition.FullPaid) {
           return {
             FullPaid: condition.FullPaid,
-            ATA: condition.ATA,
           };
         }
         return condition;
@@ -106,9 +103,6 @@ export async function GET(request: NextRequest) {
         query.$or = conditions;
       }
     }
-
-    console.log("startDate", startDateParam);
-    console.log("endDate", endDateParam);
 
     // Validate dates
     // let startDate: Date | undefined;

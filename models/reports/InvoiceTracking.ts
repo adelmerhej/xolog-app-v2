@@ -12,10 +12,10 @@ interface IClientsInvoiceReport extends Document {
   Volume: string;
   Consignee: string;
   Salesman: string;
-  ETD: Date;
-  ETA: Date;
-  ATD: Date;
-  ATA: Date;
+  Etd: Date;
+  Eta: Date;
+  Atd: Date;
+  Ata: Date;
   TotalInvoices: number;
   TotalCosts: number;
   Status: string;
@@ -78,19 +78,19 @@ const ClientsInvoiceReportSchema: Schema<IClientsInvoiceReport> = new Schema(
       default: "",
       maxlength: [100, "Salesman cannot exceed 100 characters"],
     },    
-    ETD: {
+    Etd: {
       type: Date,
       default: null,
     },
-    ETA: {
+    Eta: {
       type: Date,
       default: null,
     },
-    ATD: {
+    Atd: {
       type: Date,
       default: null,
     },
-    ATA: {
+    Ata: {
       type: Date,
       default: null,
     },

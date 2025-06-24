@@ -3,11 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
 import { JobOngoingModel } from "@/models/reports/JobOngoing";
 
-interface FullPaidCondition {
-  FullPaid: boolean;
-  Ata: null | { $ne: any };
-}
-
 function getDepartmentMapping(department: string) {
   switch (department) {
     case "AIR EXPORT":
@@ -31,13 +26,13 @@ function getDepartmentMapping(department: string) {
   }
 }
 
-function getFullPaidMapping(fullpaid: string): FullPaidCondition {
+function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
     return { FullPaid: true, Ata: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
     return { FullPaid: false, Ata: null };
-  } 
-  return { FullPaid: false, Ata: null }; // Default case
+  }
+  return {};
 }
 
 export async function GET(request: NextRequest) {
@@ -48,17 +43,18 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get("page")) || 1;
     let limit = Number(searchParams.get("limit"));
     if (!limit || limit === 0) {
-      limit = 0; // 0 means no limit in mongoose
+      limit = 0;
     }
 
     const fullpaid =
       searchParams.get("fullpaid")?.trim()?.split(",").filter(Boolean) || [];
+
     const departments =
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
     const statuses =
       searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
-    const startDateParam = searchParams.get("startDate")?.trim() || "";
-    const endDateParam = searchParams.get("endDate")?.trim() || "";
+    //const startDateParam = searchParams.get("startDate")?.trim() || "";
+    //const endDateParam = searchParams.get("endDate")?.trim() || "";
 
     // Build mongoose query
     const query: any = {};
@@ -100,10 +96,9 @@ export async function GET(request: NextRequest) {
       const conditions = fullpaid.map((fp) => {
         const condition = getFullPaidMapping(fp.trim());
 
-        if (condition.Ata && condition.Ata.$ne) {
+        if (condition.FullPaid) {
           return {
             FullPaid: condition.FullPaid,
-            Ata: condition.Ata,
           };
         }
         return condition;
@@ -115,9 +110,6 @@ export async function GET(request: NextRequest) {
         query.$or = conditions;
       }
     }
-
-    console.log("startDate", startDateParam);
-    console.log("endDate", endDateParam);
 
     // Validate dates
     // let startDate: Date | undefined;

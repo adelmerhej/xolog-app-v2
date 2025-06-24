@@ -485,8 +485,6 @@ export default function EmptyContainersComponent() {
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
 
-      console.log("response", data.data);
-
       if (Array.isArray(data.data)) {
         setJobs(data.data);
         setTotalCount(data.pagination.total);

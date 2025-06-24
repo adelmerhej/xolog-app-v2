@@ -8,8 +8,8 @@ interface ITotalProfit extends Document {
   DepartmentName?: string;
   StatusType?: string;
   TotalProfit?: number;
-  ETA?: Date;
-  ATA?: Date;
+  Eta?: Date;
+  Ata?: Date;
   UserName?: string;
   Notes?: string;
   CountryOfDeparture?: string;
@@ -58,10 +58,10 @@ const TotalProfitSchema: Schema<ITotalProfit> = new Schema(
       default: 0,
       min: [0, "TotalProfit cannot be negative"],
     },
-    ETA: {
+    Eta: {
       type: Date,
     },
-    ATA: {
+    Ata: {
       type: Date,
     },
     UserName: {
@@ -122,8 +122,8 @@ TotalProfitSchema.index({ StatusType: 1, JobDate: -1 });
 
 // Virtual property to check if job is delayed
 TotalProfitSchema.virtual('isDelayed').get(function() {
-  if (!this.ETA) return false;
-  return this.StatusType !== "Completed" && new Date() > this.ETA;
+  if (!this.Eta) return false;
+  return this.StatusType !== "Completed" && new Date() > this.Eta;
 });
 
 // Virtual property to calculate profit margin

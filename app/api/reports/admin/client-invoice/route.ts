@@ -63,8 +63,6 @@ export async function GET(request: NextRequest) {
     ]);
     const grandTotalInvoices = totalInvoiceAgg[0]?.total || 0;
 
-    console.log("grandTotalInvoices", grandTotalInvoices);
-
     return NextResponse.json({
       success: true,
       data: totalInvoices,

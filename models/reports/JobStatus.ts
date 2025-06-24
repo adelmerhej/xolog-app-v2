@@ -20,8 +20,8 @@ interface IJobStatus extends Document {
   PaymentDate?: Date;
   MemberOf: string;
   JobType: string;
-  ATA?: Date;
-  ETA?: Date;
+  Ata?: Date;
+  Eta?: Date;
   FullPaid?: boolean; // Optional field for full paid status
   PaidDO?: boolean;
   PaidDate?: Date;
@@ -123,10 +123,10 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
     //   required: [true, "JobType is required"],
     //   enum: ["Import", "Export", "Local", "Transit"],
     },
-    ATA: {
+    Ata: {
       type: Date,
     },
-    ETA: {
+    Eta: {
       type: Date,
     },
     FullPaid: {
@@ -160,7 +160,7 @@ JobStatusSchema.index({ JobType: 1 });
 
 // Virtual for checking if job is overdue (ETA has passed)
 JobStatusSchema.virtual('isOverdue').get(function() {
-  return this.ETA && this.ETA < new Date();
+  return this.Eta && this.Eta < new Date();
 });
 
 export const JobStatusModel: Model<IJobStatus> =

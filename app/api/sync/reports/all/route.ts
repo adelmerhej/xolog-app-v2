@@ -59,6 +59,7 @@ export async function POST() {
     console.log("Synced", new Date().toLocaleTimeString());
     
     return NextResponse.json({ results });
+    
   } catch (error) {
     console.error('Sync all error:', error);
     console.error('Sync all error:', {

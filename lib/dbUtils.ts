@@ -47,6 +47,7 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 
     //console.time(`SQL execution time for ${procedureName}`);
     const result = await request.query(`EXEC ${procedureName}`);
+    console.log("result", result);
     //console.timeEnd(`SQL execution time for ${procedureName}`);
 
     // console.log(`SQL result object structure for ${procedureName}:`, {
@@ -239,11 +240,11 @@ async function updateJobStatuses(): Promise<void> {
     // );
 
     await collection.updateMany(
-      { ATA: { $type: "string" } },
+      { Ata: { $type: "string" } },
       [
         {
           $set: {
-            ATA: { $dateFromString: { dateString: "$ATA" } }
+            Ata: { $dateFromString: { dateString: "$Ata" } }
           }
         }
       ]
