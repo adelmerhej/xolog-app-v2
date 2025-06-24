@@ -20,6 +20,7 @@ import {
 import { IEmptyContainer } from "@/types/reports/IEmptyContainer";
 import { MultiSelect } from "@progress/kendo-react-dropdowns";
 import { CalendarDatePicker } from "@/components/ui/calendar-date-picker";
+import { Checkbox } from "@progress/kendo-react-inputs";
 
 const loadingPanelMarkup = (
   <div className="k-loading-mask">
@@ -302,16 +303,64 @@ const allColumns = [
     visible: false,
   },
   {
+    field: "FullPaid",
+    title: "Full Paid",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.FullPaid}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
+  {
     field: "PaidDO",
     title: "Paid DO",
     width: "100px",
     visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.PaidDO}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
   },
   {
     field: "MissingDocuments",
     title: "Missing Documents",
     width: "100px",
     visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.MissingDocuments}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
   },
   {
     field: "DepartmentName",
@@ -447,6 +496,8 @@ export default function EmptyContainersComponent() {
       );
       if (!res.ok) throw new Error("Failed to fetch jobs");
       const data = await res.json();
+
+      console.log("response", data.data);
 
       if (Array.isArray(data.data)) {
         setJobs(data.data);
