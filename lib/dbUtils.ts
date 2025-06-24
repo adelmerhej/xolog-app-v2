@@ -86,7 +86,8 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 }
 
 // Save JSON data to MongoDB
-async function saveToMongoDB(collectionName: string, data: any[], skipDelete: boolean = false): Promise<void> {
+async function saveToMongoDB(collectionName: string, data: any[], 
+  skipDeleteJobStatus: boolean = false, skipDeleteOngoingJobs: boolean = false): Promise<void> {
 
   try {
     // Validate data before proceeding
@@ -119,7 +120,7 @@ async function saveToMongoDB(collectionName: string, data: any[], skipDelete: bo
         if (retryCount >= maxRetries) {
           throw new Error(`Failed to connect to MongoDB after ${maxRetries} attempts`);
         }
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
     }
 
@@ -133,12 +134,15 @@ async function saveToMongoDB(collectionName: string, data: any[], skipDelete: bo
     
     while (!clearSuccess && retryCount < maxRetries) {
       try {
-        if (skipDelete) {
-          console.log("collectionName:", collectionName);
+        if (skipDeleteJobStatus) {
+          console.log("Skip Deleting Collection Name:", collectionName);
           collectionName = "jobstatus";
+        }else if(skipDeleteOngoingJobs){
+          console.log("Skip Deleting Collection Name:", collectionName);
+          collectionName = "ongoingjobs";
         }else{
         await collection.deleteMany({});
-        console.log("Deleted Collection Name:", collectionName);
+        console.log("Deleting Collection Name:", collectionName);
       }
         //console.log(`Cleared collection ${collectionName}:`, {
         //  deletedCount: deleteResult.deletedCount,
@@ -200,39 +204,39 @@ async function updateJobStatuses(): Promise<void> {
     const db = client.db(dbName);
     const collection = db.collection('jobstatus');
 
-    await collection.updateMany(
-      {
-        StatusType: {
-          $in: [
-            "SI New", "SI Delivered", "SI Pending for Delivery", "SI Cancelled",
-            "SE New", "SE Delivered", "SE Pending for Delivery", "SE Cancelled",
-            "SC New", "SC Delivered", "SC Pending for Delivery", "SC Cancelled",
-            "AI New", "AI Delivered", "AI Pending for Delivery", "AI Cancelled",
-            "AE New", "AE Delivered", "AE Pending for Delivery", "AE Cancelled",
-            "AC New", "AC Delivered", "AC Pending for Delivery", "AC Cancelled",
-            "LF New", "LF Delivered", "LF Pending for Delivery", "LF Cancelled",
-            "WH New", "WH Delivered", "WH Pending for Delivery", "WH Cancelled"
-          ]
-        }
-      },
-      [
-        {
-          $set: {
-            StatusType: {
-              $switch: {
-                branches: [
-                  { case: { $regexMatch: { input: "$StatusType", regex: /New$/ } }, then: "New" },
-                  { case: { $regexMatch: { input: "$StatusType", regex: /Delivered$/ } }, then: "Delivered" },
-                  { case: { $regexMatch: { input: "$StatusType", regex: /Pending for Delivery$/ } }, then: "Pending" },
-                  { case: { $regexMatch: { input: "$StatusType", regex: /Cancelled$/ } }, then: "Cancelled" }
-                ],
-                default: "$StatusType"
-              }
-            }
-          }
-        }
-      ]
-    );
+    // await collection.updateMany(
+    //   {
+    //     StatusType: {
+    //       $in: [
+    //         "SI New", "SI Delivered", "SI Pending for Delivery", "SI Cancelled",
+    //         "SE New", "SE Delivered", "SE Pending for Delivery", "SE Cancelled",
+    //         "SC New", "SC Delivered", "SC Pending for Delivery", "SC Cancelled",
+    //         "AI New", "AI Delivered", "AI Pending for Delivery", "AI Cancelled",
+    //         "AE New", "AE Delivered", "AE Pending for Delivery", "AE Cancelled",
+    //         "AC New", "AC Delivered", "AC Pending for Delivery", "AC Cancelled",
+    //         "LF New", "LF Delivered", "LF Pending for Delivery", "LF Cancelled",
+    //         "WH New", "WH Delivered", "WH Pending for Delivery", "WH Cancelled"
+    //       ]
+    //     }
+    //   },
+    //   [
+    //     {
+    //       $set: {
+    //         StatusType: {
+    //           $switch: {
+    //             branches: [
+    //               { case: { $regexMatch: { input: "$StatusType", regex: /New$/ } }, then: "New" },
+    //               { case: { $regexMatch: { input: "$StatusType", regex: /Delivered$/ } }, then: "Delivered" },
+    //               { case: { $regexMatch: { input: "$StatusType", regex: /Pending for Delivery$/ } }, then: "Pending" },
+    //               { case: { $regexMatch: { input: "$StatusType", regex: /Cancelled$/ } }, then: "Cancelled" }
+    //             ],
+    //             default: "$StatusType"
+    //           }
+    //         }
+    //       }
+    //     }
+    //   ]
+    // );
 
     await collection.updateMany(
       { ATA: { $type: "string" } },

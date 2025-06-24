@@ -1,19 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
-import { JobStatusModel } from "@/models/reports/JobStatus";
+import { JobStatusModel } from "@/models/reports/JobOngoing";
 
 function getDepartmentMapping(department: string) {
   switch (department) {
-    case "Import":
-      return { ids: [5, 16] };
-    case "Export":
-      return { ids: [2, 18] };
-    case "Clearance":
-      return { ids: [8, 17] };
-    case "Land Freight":
+    case "AIR EXPORT":
+      return { ids: [2] };
+    case "AIR IMPORT":
+      return { ids: [5] };
+    case "LAND FREIGHT":
       return { ids: [6] };
-    case "Sea Cross":
+    case "AIR CLEARANCE":
+      return { ids: [8] };
+    case "SEA IMPORT":
+      return { ids: [16] };
+    case "SEA CLEARANCE":
+      return { ids: [17] };
+    case "SEA EXPORT":
+      return { ids: [18] };
+    case "SEA CROSS":
       return { ids: [6], specialCondition: { id: 6, jobType: 3 } };
     default:
       return { ids: [2, 5, 6, 8, 16, 17, 18] };
@@ -25,9 +31,7 @@ function getFullPaidMapping(fullpaid: string) {
     return { FullPaid: true, ATA: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
     return { FullPaid: false, ATA: null };
-  } else if (fullpaid.toLowerCase() === "pendings") {
-    return { FullPaid: false, ATA: { $ne: null, $lte: new Date() } };
-  }
+  } 
   return {};
 }
 
@@ -91,10 +95,10 @@ export async function GET(request: NextRequest) {
       const conditions = fullpaid.map((fp) => {
         const condition = getFullPaidMapping(fp.trim());
 
-        if (condition.ATA && condition.ATA.$ne) {
+        if (condition.Ata && condition.Ata.$ne) {
           return {
             FullPaid: condition.FullPaid,
-            ATA: condition.ATA,
+            Ata: condition.Ata,
           };
         }
         return condition;

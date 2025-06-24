@@ -96,26 +96,26 @@ const allColumns = [
   },
   { field: "MemberOf", title: "Member Of", visible: true },
   {
-    field: "ATA",
+    field: "Ata",
     title: "ATA",
     width: "120px",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.ATA)}</td>;
+        return <td>{formatDate(dataItem.Ata)}</td>;
       },
     },
   },
   {
-    field: "ETA",
+    field: "Eta",
     title: "ETA",
     width: "120px",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.ETA)}</td>;
+        return <td>{formatDate(dataItem.Eta)}</td>;
       },
     },
   },
@@ -205,7 +205,7 @@ const allColumns = [
   },
 ];
 
-export default function JobStatusComponent() {
+export default function OngoingJobComponent() {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const [jobs, setJobs] = useState<IJobStatus[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
@@ -330,7 +330,7 @@ export default function JobStatusComponent() {
         : "";
 
       const res = await fetch(
-        `/api/reports/admin/job-status?
+        `/api/reports/admin/on-going?
           page=${Math.floor(pageState.skip / pageState.take) + 1}
           &search=${globalFilter}
           &status=${encodeURIComponent(statusParam)}
@@ -527,40 +527,43 @@ export default function JobStatusComponent() {
   };
 
   const renderDepartmentsSelector = () => {
-    const departments = [
-      { text: "All", value: "All" },
-      { text: "Import", value: "Import" },
-      { text: "Export", value: "Export" },
-      { text: "Clearance", value: "Clearance" },
-      { text: "Land Freight", value: "Land Freight" },
-      { text: "Sea Cross", value: "Sea Cross" },
-    ];
-    return (
-      <div style={{ marginBottom: "20px", minWidth: 220 }}>
-        <MultiSelect
-          data={departments}
-          textField="text"
-          dataItemKey="value"
-          value={departments.filter(
-            (option) =>
-              selectedDepartments.includes(option.value) &&
-              (option.value !== "All" || selectedDepartments.length === 1)
-          )}
-          onChange={(e) => {
-            let values = e.value.map((item: any) => item.value);
-            if (values.length > 0) {
-              values = values.filter((v: string) => v !== "All");
-              setSelectedDepartments(values);
-            } else {
-              setSelectedDepartments(["All"]);
-            }
-          }}
-          placeholder="Select departments..."
-          className="w-[220px] mr-2"
-        />
-      </div>
-    );
-  };
+      const departments = [
+        { text: "All", value: "All" },
+        { text: "AIR IMPORT", value: "AIR IMPORT" },  
+        { text: "AIR EXPORT", value: "AIR EXPORT" },
+        { text: "AIR CLEARANCE", value: "AIR CLEARANCE" },
+        { text: "SEA IMPORT", value: "SEA IMPORT" },
+        { text: "SEA EXPORT", value: "SEA EXPORT" },
+        { text: "SEA CLEARANCE", value: "SEA CLEARANCE" },
+        { text: "LAND FREIGHT", value: "LAND FREIGHT" },
+        { text: "SEA CROSS", value: "SEA CROSS" },
+      ];
+      return (
+        <div style={{ marginBottom: "20px", minWidth: 220 }}>
+          <MultiSelect
+            data={departments}
+            textField="text"
+            dataItemKey="value"
+            value={departments.filter(
+              (option) =>
+                selectedDepartments.includes(option.value) &&
+                (option.value !== "All" || selectedDepartments.length === 1)
+            )}
+            onChange={(e) => {
+              let values = e.value.map((item: any) => item.value);
+              if (values.length > 0) {
+                values = values.filter((v: string) => v !== "All");
+                setSelectedDepartments(values);
+              } else {
+                setSelectedDepartments(["All"]);
+              }
+            }}
+            placeholder="Select departments..."
+            className="w-[220px] mr-2"
+          />
+        </div>
+      );
+    };
 
   const filteredJobs = useMemo(() => {
     if (statusFilter.includes("All")) return jobs;

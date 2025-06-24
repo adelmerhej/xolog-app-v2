@@ -7,8 +7,8 @@ export interface ITotalProfit extends Document {
   DepartmentName?: string;
   StatusType?: string;
   TotalProfit?: number;
-  ETA?: Date;
-  ATA?: Date;
+  Eta?: Date;
+  Ata?: Date;
   Arrival?: Date;
   UserName?: string;
   Notes?: string;

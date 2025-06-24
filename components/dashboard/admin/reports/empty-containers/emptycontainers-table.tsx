@@ -83,20 +83,6 @@ const formatDateForAPI = (dateString: string | Date | null | undefined): string 
 // Define all possible columns
 const allColumns = [
   {
-    field: "OrderNo",
-    title: "Order#",
-    visible: false,
-    filterable: {
-      operators: {
-        string: {
-          contains: "Contains",
-          eq: "Is equal to",
-          neq: "Is not equal to",
-        },
-      },
-    },
-  },
-  {
     field: "JobNo",
     title: "Job#",
     width: "150px",
@@ -128,6 +114,7 @@ const allColumns = [
   {
     field: "JobDate",
     title: "Job Date",
+    width: "150px",
     visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
@@ -148,6 +135,7 @@ const allColumns = [
   {
     field: "DepartmentName",
     title: "Department",
+    width: "150px",
     visible: false,
     filterable: {
       operators: {

@@ -18,8 +18,8 @@ export interface IJobStatus extends Document {
   PaymentDate: Date;
   MemberOf: string;
   JobType: string;
-  ATA: Date;
-  ETA: Date;
+  Ata?: Date;
+  Eta?: Date;
   FullPaid?: boolean;
   PaidDO?: boolean;
   PaidDate?: Date;
