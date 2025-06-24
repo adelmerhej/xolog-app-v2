@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         query.$or = conditions;
       }
     }
-
+    
     // Apply FullPaid filter
     if (fullpaid.length > 0) {
       const conditions = fullpaid.map((fp) => {

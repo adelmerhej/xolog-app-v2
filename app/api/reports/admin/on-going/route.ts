@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
     const query: any = {};
 
     if (statuses.length > 0) {
-      query.StatusType = { $in: statuses };
+      query.JobStatusType = { $in: statuses };
     }
 
     if (departments.length > 0) {

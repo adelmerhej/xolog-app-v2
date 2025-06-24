@@ -1,151 +1,170 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 
 interface IOngoingJob extends Document {
-  DepartmentName: string;
-  StatusType: string;
-  TotalProfit: number;
-  OrderBy: string;
-  JobNo: string;
-  ReferenceNo: string;
-  JobDate: Date;
-  OperatingUserId: string;
-  DepartmentId: number;
-  UserName: string;
-  CustomerName: string;
-  PendingInvoices: number;
-  PendingCosts: number;
-  Tejrim: string;
-  CanceledJob: boolean;
-  ConsigneeName: string;
-  PaymentDate?: Date;
-  MemberOf: string;
-  JobType: string;
-  Ata?: Date;
-  Eta?: Date;
-  FullPaid?: boolean; // Optional field for full paid status
-  PaidDo?: boolean;
-  PaidDate?: Date;
-  MissingDocuments?: boolean;
-  MissingDocumentsDate?: Date;
-  createdAt: Date;
-  updatedAt: Date;
+    SortingOrder: number;
+    JobNo: number;
+    ReferenceNo: string;
+    JobDate: Date;
+    DepartmentId: number;
+    DepartmentName: string;
+    JobStatusType: string;
+    StatusType: string;
+    CustomerName: string;
+    ConsigneeName: string;
+    MemberOf: string;
+    ContainerToCnee: boolean;
+    dtCntrToCnee: Date;
+    EmptyContainer: boolean;
+    dtEmptyCntr: Date;
+    OperatingUser: string;
+    UserName: string;
+    SalesName: string;
+    Mbl: string;
+    ContainerNo: string;
+    Atd?: Date; 
+    Ata?: Date; 
+    Etd?: Date; 
+    Eta?: Date; 
+    Status: string;
+    blstatus: string;
+    Notes: string;
+    CarrierName: string;
+    ArrivalDays: number;
+    TejrimDays: number;
+    DiffCntrToCnee: number;
+    CountryOfDeparture: string;
+    Departure: string;
+    CountryOfDestination: string;
+    Destination: string;
+    Tejrim: boolean;
+    TejrimDate?: Date;
+    JobType: string;
+    FullPaid: boolean;
+    PaidDO: boolean;
+    PaidDate?: Date;
+    MissingDocuments: boolean;
+    MissingDocumentsDate?: Date;
+    PendingInvoices: number;
+    PendingCosts: number;
+    TotalInvoices: number;
+    TotalCosts: number;
+    TotalProfit: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 const OngoingJobSchema: Schema<IOngoingJob> = new Schema(
   {
+    SortingOrder: {
+      type: Number,
+      default: 0,
+    },
+    JobNo: {
+      type: Number,
+      default: 0,
+    },
+    ReferenceNo: {
+      type: String,
+      default: "",
+    },
+    JobDate: {
+      type: Date,
+    },
+    DepartmentId: {
+      type: Number,
+      default: 0,
+    },
     DepartmentName: {
       type: String,
       required: [true, "DepartmentName is required"],
       maxlength: [100, "DepartmentName cannot exceed 100 characters"],
     },
+    JobStatusType: {
+      type: String,
+      default: "",
+    },
     StatusType: {
       type: String,
       default: "",
     },
-    TotalProfit: {
-      type: Number,
-      default: 0,
-      min: [0, "TotalProfit cannot be negative"],
-    },
-    OrderBy: {
-      type: String,
-      default: "",
-      maxlength: [100, "OrderBy cannot exceed 100 characters"],
-    },
-    JobNo: {
-      type: String,
-      required: [true, "JobNo is required"],
-      maxlength: [50, "JobNo cannot exceed 50 characters"],
-    },
-    ReferenceNo: {
-      type: String,
-      default: "",
-      maxlength: [50, "ReferenceNo cannot exceed 50 characters"],
-    },
-    JobDate: {
-      type: Date,
-    },
-    OperatingUserId: {
-      type: String,
-      required: [true, "OperatingUserId is required"],
-    },
-    DepartmentId: {
-      type: Number, 
-      required: [true, "DepartmentId is required"],
-      index: true
-    },
-    UserName: {
-      type: String,
-      required: [true, "UserName is required"],
-      maxlength: [100, "UserName cannot exceed 100 characters"],
-    },
     CustomerName: {
       type: String,
-      required: [true, "CustomerName is required"],
-      maxlength: [100, "CustomerName cannot exceed 100 characters"],
-    },
-    PendingInvoices: {
-      type: Number,
-      default: 0,
-      min: [0, "PendingInvoices cannot be negative"],
-    },
-    PendingCosts: {
-      type: Number,
-      default: 0,
-      min: [0, "PendingCosts cannot be negative"],
-    },
-    Tejrim: {
-      type: String,
       default: "",
-      maxlength: [100, "Tejrim cannot exceed 100 characters"],
-    },
-    CanceledJob: {
-      type: Boolean,
-      default: false,
     },
     ConsigneeName: {
       type: String,
       default: "",
-      maxlength: [100, "ConsigneeName cannot exceed 100 characters"],
-    },
-    PaymentDate: {
-      type: Date,
     },
     MemberOf: {
       type: String,
       default: "",
-      maxlength: [100, "MemberOf cannot exceed 100 characters"],
     },
-    JobType: {
+    ContainerToCnee: {
+      type: Boolean,
+    },
+    dtCntrToCnee: {
+      type: Date
+    },
+    EmptyContainer: {
+      type: Boolean
+    },
+    dtEmptyCntr: {
+      type: Date
+    },
+    OperatingUser: {
       type: String,
       default: "",
-    //   required: [true, "JobType is required"],
-    //   enum: ["Import", "Export", "Local", "Transit"],
+    },
+    UserName: {
+      type: String,
+      default: "",
+    },
+    SalesName: {
+      type: String,
+      default: "",
+    },
+    Mbl: {
+      type: String,
+      default: "",
+    },
+    ContainerNo: {
+      type: String,
+      default: "",
+    },
+    Atd: {
+      type: Date
     },
     Ata: {
-      type: Date,
+      type: Date
+    },
+    Etd: {
+      type: Date
     },
     Eta: {
-      type: Date,
+      type: Date
     },
-    FullPaid: {
-      type: Boolean,
-      default: false, // Default to false if not specified
+    Status: {
+      type: String,
+      default: "",
     },
-    PaidDo: {
-      type: Boolean,
-      default: false, // Default to false if not specified
+    blstatus: {
+        type: String,
+      default: "",
     },
-    PaidDate: {
-      type: Date,
+    Notes: {
+      type: String,
+      default: "",
     },
-    MissingDocuments: {
-      type: Boolean,
-      default: false, // Default to false if not specified
+    CarrierName: {
+      type: String,
+      default: "",
     },
-    MissingDocumentsDate: {
-      type: Date,
-    },
+
+
+
+
+
+
   },
   { timestamps: true, collection: "ongoingjobs" }
 );
