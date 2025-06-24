@@ -159,12 +159,79 @@ const OngoingJobSchema: Schema<IOngoingJob> = new Schema(
       type: String,
       default: "",
     },
-
-
-
-
-
-
+    ArrivalDays: {
+      type: Number,
+      default: 0,
+    },
+    TejrimDays: {
+      type: Number,
+      default: 0,
+    },
+    DiffCntrToCnee: {
+      type: Number,
+      default: 0,
+    },
+    CountryOfDeparture:{
+      type: String,
+      default: "",
+    },
+    Departure:{
+      type: String,
+      default: "",
+    },
+    CountryOfDestination:{
+      type: String,
+      default: "",
+    },
+    Destination:{
+      type: String,
+      default: "",
+    },
+    Tejrim:{
+      type: Boolean,
+    },
+    TejrimDate:{
+      type: Date
+    },
+    JobType:{
+      type: String,
+      default: "",
+    },
+    FullPaid:{
+      type: Boolean,
+    },
+    PaidDO:{
+      type: Boolean,
+    },
+    PaidDate:{
+      type: Date
+    },
+    MissingDocuments:{
+      type: Boolean,
+    },
+    MissingDocumentsDate:{
+      type: Date
+    },
+    PendingInvoices:{
+      type: Number,
+      default: 0,
+    },
+    PendingCosts:{
+      type: Number,
+      default: 0,
+    },
+    TotalInvoices:{
+      type: Number,
+      default: 0,
+    },
+    TotalCosts:{
+      type: Number,
+      default: 0,
+    },
+    TotalProfit:{
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true, collection: "ongoingjobs" }
 );
