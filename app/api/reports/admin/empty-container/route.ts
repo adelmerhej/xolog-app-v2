@@ -28,12 +28,10 @@ function getDepartmentMapping(department: string) {
 
 function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true, Ata: null };
+    return { FullPaid: true};
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false, Ata: null };
-  } else if (fullpaid.toLowerCase() === "pendings") {
-    return { FullPaid: false, Ata: { $ne: null, $lte: new Date() } };
-  }
+    return { FullPaid: false};
+  } 
   return {};
 }
 
@@ -89,11 +87,10 @@ export async function GET(request: NextRequest) {
     if (fullpaid.length > 0) {
       const conditions = fullpaid.map((fp) => {
         const condition = getFullPaidMapping(fp.trim());
-        
-        if (condition.Ata && condition.Ata.$ne) {
+
+        if (condition.FullPaid === false) {
           return {
             FullPaid: condition.FullPaid,
-            Ata: condition.Ata,
           };
         }
         return condition;
