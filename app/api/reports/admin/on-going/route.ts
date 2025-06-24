@@ -1,26 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
-import { EmptyContainerModel } from "@/models/reports/EmptyContainer";
+import { JobStatusModel } from "@/models/reports/JobStatus";
 
 function getDepartmentMapping(department: string) {
   switch (department) {
-    case "AIR EXPORT":
-      return { ids: [2] };
-    case "AIR IMPORT":
-      return { ids: [5] };
-    case "LAND FREIGHT":
+    case "Import":
+      return { ids: [5, 16] };
+    case "Export":
+      return { ids: [2, 18] };
+    case "Clearance":
+      return { ids: [8, 17] };
+    case "Land Freight":
       return { ids: [6] };
-    case "AIR CLEARANCE":
-      return { ids: [8] };
-    case "SEA IMPORT":
-      return { ids: [16] };
-    case "SEA CLEARANCE":
-      return { ids: [17] };
-    case "SEA EXPORT":
-      return { ids: [18] };
-    case "SEA CROSS":
+    case "Sea Cross":
       return { ids: [6], specialCondition: { id: 6, jobType: 3 } };
     default:
       return { ids: [2, 5, 6, 8, 16, 17, 18] };
@@ -29,10 +22,12 @@ function getDepartmentMapping(department: string) {
 
 function getFullPaidMapping(fullpaid: string) {
   if (fullpaid.toLowerCase() === "fullpaid") {
-    return { FullPaid: true};
+    return { FullPaid: true, ATA: null };
   } else if (fullpaid.toLowerCase() === "notpaid") {
-    return { FullPaid: false};
-  } 
+    return { FullPaid: false, ATA: null };
+  } else if (fullpaid.toLowerCase() === "pendings") {
+    return { FullPaid: false, ATA: { $ne: null, $lte: new Date() } };
+  }
   return {};
 }
 
@@ -40,21 +35,28 @@ export async function GET(request: NextRequest) {
   try {
     await dbConnect();
 
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get("page") || "1");
+    const searchParams = request.nextUrl.searchParams;
+    const page = Number(searchParams.get("page")) || 1;
     let limit = Number(searchParams.get("limit"));
     if (!limit || limit === 0) {
-      limit = 0;
+      limit = 0; // 0 means no limit in mongoose
     }
+
     const fullpaid =
       searchParams.get("fullpaid")?.trim()?.split(",").filter(Boolean) || [];
     const departments =
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
+    const statuses =
+      searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
     const startDateParam = searchParams.get("startDate")?.trim() || "";
     const endDateParam = searchParams.get("endDate")?.trim() || "";
 
     // Build mongoose query
     const query: any = {};
+
+    if (statuses.length > 0) {
+      query.StatusType = { $in: statuses };
+    }
 
     if (departments.length > 0) {
       const conditions = departments.map((dept) => {
@@ -89,9 +91,10 @@ export async function GET(request: NextRequest) {
       const conditions = fullpaid.map((fp) => {
         const condition = getFullPaidMapping(fp.trim());
 
-        if (condition.FullPaid === false) {
+        if (condition.ATA && condition.ATA.$ne) {
           return {
             FullPaid: condition.FullPaid,
+            ATA: condition.ATA,
           };
         }
         return condition;
@@ -104,28 +107,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Validate dates and apply to query
+    console.log("startDate", startDateParam);
+    console.log("endDate", endDateParam);
+
     // Validate dates
     // let startDate: Date | undefined;
     // let endDate: Date | undefined;
 
     // if (startDateParam) {
-    //   startDate = new Date(startDateParam);
-    //   if (isNaN(startDate.getTime())) {
-    //     startDate = undefined;
-    //   } else {
-    //     // Set to start of day
-    //     startDate.setHours(0, 0, 0, 0);
+    //   const parsedStartDate = new Date(startDateParam);
+    //   if (!isNaN(parsedStartDate.getTime())) {
+    //     // Check if the date is valid
+    //     startDate = parsedStartDate;
     //   }
     // }
 
     // if (endDateParam) {
-    //   endDate = new Date(endDateParam);
-    //   if (isNaN(endDate.getTime())) {
-    //     endDate = undefined;
-    //   } else {
-    //     // Set to end of day
-    //     endDate.setHours(23, 59, 59, 999);
+    //   const parsedEndDate = new Date(endDateParam);
+    //   if (!isNaN(parsedEndDate.getTime())) {
+    //     // Check if the date is valid
+    //     endDate = parsedEndDate;
     //   }
     // }
 
@@ -135,19 +136,27 @@ export async function GET(request: NextRequest) {
     //     $lte: endDate,
     //   };
     // } else if (startDate) {
+    //   // Handle case where only start date is provided
     //   query.JobDate = { $gte: startDate };
     // } else if (endDate) {
+    //   // Handle case where only end date is provided
     //   query.JobDate = { $lte: endDate };
     // }
-    
-    const emptyContainers = await EmptyContainerModel.find(query)
-      .sort({ JobDate: 1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
 
-    const total = await EmptyContainerModel.countDocuments(query);
-    
-    if (emptyContainers.length === 0) {
+    const totalProfitsQuery = JobStatusModel.find(query).sort({ JobDate: 1 });
+    if (limit > 0) {
+      totalProfitsQuery.skip((page - 1) * limit).limit(limit);
+    }
+    const totalProfits = await totalProfitsQuery;
+    const total = await JobStatusModel.countDocuments(query);
+
+    const grandTotalAgg = await JobStatusModel.aggregate([
+      { $match: query },
+      { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
+    ]);
+    const grandTotalProfit = grandTotalAgg[0]?.total || 0;
+
+    if (totalProfits.length === 0) {
       return NextResponse.json({
         success: false,
         data: [],
@@ -156,18 +165,20 @@ export async function GET(request: NextRequest) {
           limit,
           total: 0,
           totalPages: 0,
+          grandTotalProfit,
         },
       });
     }
 
     return NextResponse.json({
       success: true,
-      data: emptyContainers,
+      data: totalProfits,
       pagination: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
+        grandTotalProfit,
       },
     });
   } catch (error) {
