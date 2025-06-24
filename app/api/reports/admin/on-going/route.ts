@@ -35,6 +35,19 @@ function getFullPaidMapping(fullpaid: string) {
   return {};
 }
 
+function getShipmentStatusMapping(shipmentStatus: string) {
+  const status = shipmentStatus.toLowerCase();
+  
+  if (status === "tobeloaded") {
+    return { ATD: null, ATA: null };
+  } else if (status === "onwater") {
+    return { ATD: { $ne: null }, ATA: null }; 
+  } else if (status === "underclearance") {
+    return { ATD: { $ne: null }, ATA: { $ne: null } }; 
+  }
+  return {};
+}
+
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
@@ -51,8 +64,13 @@ export async function GET(request: NextRequest) {
 
     const departments =
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
+
     const statuses =
       searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
+
+    const shipmentStatus =
+      searchParams.get("shipmentStatus")?.trim()?.split(",").filter(Boolean) || [];
+
     //const startDateParam = searchParams.get("startDate")?.trim() || "";
     //const endDateParam = searchParams.get("endDate")?.trim() || "";
 
@@ -63,53 +81,68 @@ export async function GET(request: NextRequest) {
       query.StatusType = { $in: statuses };
     }
 
-    // if (departments.length > 0) {
-    //   const conditions = departments.map((dept) => {
-    //     const { ids, specialCondition } = getDepartmentMapping(dept.trim());
+    if (departments.length > 0) {
+      const conditions = departments.map((dept) => {
+        const { ids, specialCondition } = getDepartmentMapping(dept.trim());
 
-    //     if (specialCondition) {
-    //       return {
-    //         $or: [
-    //           { DepartmentId: { $in: ids } },
-    //           {
-    //             $and: [
-    //               { DepartmentId: specialCondition.id },
-    //               { JobType: specialCondition.jobType },
-    //             ],
-    //           },
-    //         ],
-    //       };
-    //     }
-    //     return { DepartmentId: { $in: ids } };
-    //   });
+        if (specialCondition) {
+          return {
+            $or: [
+              { DepartmentId: { $in: ids } },
+              {
+                $and: [
+                  { DepartmentId: specialCondition.id },
+                  { JobType: specialCondition.jobType },
+                ],
+              },
+            ],
+          };
+        }
+        return { DepartmentId: { $in: ids } };
+      });
 
-    //   // if there are multiple departments
-    //   if (conditions.length === 1) {
-    //     Object.assign(query, conditions[0]);
-    //   } else {
-    //     query.$or = conditions;
-    //   }
-    // }
+      // if there are multiple departments
+      if (conditions.length === 1) {
+        Object.assign(query, conditions[0]);
+      } else {
+        query.$or = conditions;
+      }
+    }
 
     // Apply FullPaid filter
-    // if (fullpaid.length > 0) {
-    //   const conditions = fullpaid.map((fp) => {
-    //     const condition = getFullPaidMapping(fp.trim());
+    if (fullpaid.length > 0) {
+      const conditions = fullpaid.map((fp) => {
+        const condition = getFullPaidMapping(fp.trim());
 
-    //     if (condition.FullPaid) {
-    //       return {
-    //         FullPaid: condition.FullPaid,
-    //       };
-    //     }
-    //     return condition;
-    //   });
+        if (condition.FullPaid) {
+          return {
+            FullPaid: condition.FullPaid,
+          };
+        }
+        return condition;
+      });
 
-    //   if (conditions.length === 1) {
-    //     Object.assign(query, conditions[0]);
-    //   } else {
-    //     query.$or = conditions;
-    //   }
-    // }
+      if (conditions.length === 1) {
+        Object.assign(query, conditions[0]);
+      } else {
+        query.$or = conditions;
+      }
+    }
+
+    // Apply ShipmentStatus filter
+    if (shipmentStatus.length > 0) {
+      const conditions = shipmentStatus.map((status) => {
+        const condition = getShipmentStatusMapping(status.trim());
+        return condition;
+      });
+
+      if (conditions.length === 1) {
+        Object.assign(query, conditions[0]);
+      } else {
+        query.$or = conditions;
+      }
+    }
+    console.log("query", query);  
 
     // Validate dates
     // let startDate: Date | undefined;
@@ -144,12 +177,14 @@ export async function GET(request: NextRequest) {
     //   query.JobDate = { $lte: endDate };
     // }
 
-    const totalProfitsQuery = JobOngoingModel.find();
+    const totalProfitsQuery = JobOngoingModel.find(query);
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-    const total = await JobOngoingModel.countDocuments();
+    const total = await JobOngoingModel.countDocuments(query);
+
+    console.log("total", total);
 
     const grandTotalAgg = await JobOngoingModel.aggregate([
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },

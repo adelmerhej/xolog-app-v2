@@ -220,6 +220,7 @@ export default function OngoingJobComponent() {
   const [grandTotalProfit, setGrandTotalProfit] = useState(0);
   //const [showFullPaid, setShowFullPaid] = useState<string>("All");
   const [statusFilter, setStatusFilter] = useState<string[]>(["New"]);
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState<string[]>(["All"]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([
     "All",
   ]);
@@ -329,11 +330,24 @@ export default function OngoingJobComponent() {
         ? formatDate(selectedDateRange.to)
         : "";
 
+      const shipmentStatusParam =
+        shipmentStatusFilter.length > 0
+          ? shipmentStatusFilter.includes("All")
+            ? ["All"]
+            : shipmentStatusFilter
+          : ["All"];
+
+      const shipmentStatus =
+        Array.isArray(shipmentStatusParam)
+          ? shipmentStatusParam.join(",")
+          : shipmentStatusParam;
+
       const res = await fetch(
         `/api/reports/admin/on-going?
           page=${Math.floor(pageState.skip / pageState.take) + 1}
           &search=${globalFilter}
           &status=${encodeURIComponent(statusParam)}
+          &shipmentStatus=${encodeURIComponent(shipmentStatus)}
           &departments=${selectedDepartmentsParam}
           &fullpaid=${fullPaidChecked}
           &startDate=${startDate}
@@ -364,16 +378,9 @@ export default function OngoingJobComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [
-    statusFilter,
-    fullPaidChecked,
-    selectedDepartments,
-    selectedDateRange.from,
-    selectedDateRange.to,
-    pageState.skip,
-    pageState.take,
-    globalFilter,
-  ]);
+  }, [statusFilter, selectedDepartments, selectedDateRange.from, 
+    selectedDateRange.to, shipmentStatusFilter, pageState.skip, pageState.take, 
+    globalFilter, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -445,6 +452,41 @@ export default function OngoingJobComponent() {
       </div>
     );
   };
+
+    // Status options
+    const renderShipmentStatusSelector = () => {
+      const shipmentStatusOptions = [
+        { text: "All", value: "All" },
+        { text: "Tobe Loaded", value: "TobeLoaded" },
+        { text: "On Water", value: "OnWater" },
+        { text: "Under Clearance", value: "UnderClearance" },
+      ];
+      return (
+        <div style={{ marginBottom: "20px", minWidth: 220 }}>
+          <MultiSelect
+            data={shipmentStatusOptions}
+            textField="text"
+            dataItemKey="value"
+            value={shipmentStatusOptions.filter(
+              (option) =>
+                shipmentStatusFilter.includes(option.value) &&
+                (option.value !== "All" || shipmentStatusFilter.length === 1)
+            )}
+            onChange={(e) => {
+              let values = e.value.map((item: any) => item.value);
+              if (values.length > 0) {
+                values = values.filter((v: string) => v !== "All");
+                setShipmentStatusFilter(values);
+              } else {
+                setShipmentStatusFilter(["All"]);
+              }
+            }}
+            placeholder="Select status..."
+            className="w-[220px] mr-2"
+          />
+        </div>
+      );
+    };
 
   // Render checkbox for full paid filter
   // This checkbox will filter jobs that are fully paid
@@ -650,9 +692,10 @@ export default function OngoingJobComponent() {
           <div className="flex flex-wrap gap-2">
             {renderColumnSelector()}
             {renderDepartmentsSelector()}
+            {renderShipmentStatusSelector()}
             {renderStatusSelector()}
             {renderCheckFullpaidSelector()}
-
+            
             {/* Date Range Picker */}
             <div className="flex flex-col md:flex-row gap-4 justify-start">
               <CalendarDatePicker
