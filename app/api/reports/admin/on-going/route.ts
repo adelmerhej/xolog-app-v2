@@ -177,16 +177,16 @@ export async function GET(request: NextRequest) {
     //   query.JobDate = { $lte: endDate };
     // }
 
-    const totalProfitsQuery = OngoingJobModel.find(query);
+    const totalProfitsQuery = OngoingJob.find(query);
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-    const total = await OngoingJobModel.countDocuments(query);
+    const total = await OngoingJob.countDocuments(query);
 
     console.log("total", total);
 
-    const grandTotalAgg = await OngoingJobModel.aggregate([
+    const grandTotalAgg = await OngoingJob.aggregate([
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
     ]);
     const grandTotalProfit = grandTotalAgg[0]?.total || 0;
