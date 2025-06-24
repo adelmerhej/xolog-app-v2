@@ -46,8 +46,8 @@ export async function GET(request: NextRequest) {
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
     const statuses =
       searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
-    const startDateParam = searchParams.get("startDate")?.trim() || "";
-    const endDateParam = searchParams.get("endDate")?.trim() || "";
+   // const startDateParam = searchParams.get("startDate")?.trim() || "";
+    //const endDateParam = searchParams.get("endDate")?.trim() || "";
 
     // Build mongoose query
     const query: any = {};
