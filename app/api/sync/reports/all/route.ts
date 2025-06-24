@@ -9,7 +9,6 @@ const procedures = [
   { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
   { name: '__Job_Status_FullPaid_to_JSON', collection: 'jobstatus' },
   { name: '__OngoingJobs_Status_to_JSON', collection: 'ongoingjobs' },
-  { name: '__OngoingJobs_UnderClearance_to_JSON', collection: 'ongoingjobs' }
 
 ];
 

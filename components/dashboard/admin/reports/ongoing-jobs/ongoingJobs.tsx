@@ -80,22 +80,36 @@ const allColumns = [
       },
     },
   },
-  { field: "ReferenceNo", title: "Reference#", visible: true },
+  { field: "ReferenceNo", title: "Reference#", width: "150px", visible: true },
+  { field: "DepartmentId", title: "Department", width: "150px", visible: false },
+  { field: "DepartmentName", title: "Department Name", width: "150px", visible: true },
+  { field: "JobStatusType", title: "Job Status", width: "150px", visible: true },
+  { field: "StatusType", title: "Status Type", width: "150px", visible: false },
   { field: "CustomerName", title: "Customer", width: "150px", visible: true },
+  { field: "ConsigneeName", title: "Consignee", width: "150px", visible: false },
+  { field: "MemberOf", title: "Member Of", width: "150px", visible: false },
+  
+  { field: "ContainerToCnee", title: "Container To Cnee", width: "150px", visible: false },
+  { field: "dtCntrToCnee", title: "Container To Cnee Date", width: "150px", visible: false },
+  { field: "EmptyContainer", title: "Empty Container", width: "150px", visible: false },
+  { field: "dtEmptyCntr", title: "Empty Container Date", width: "150px", visible: false },
+  { field: "OperatingUser", title: "Operating User", width: "150px", visible: false },
+  { field: "UserName", title: "Operating User", width: "150px", visible: false },
+  { field: "SalesName", title: "Sales Name", width: "150px", visible: false },
+  { field: "Mbl", title: "Mbl", width: "150px", visible: false },
+  { field: "ContainerNo", title: "Container No", width: "150px", visible: false },
   {
-    field: "PaymentDate",
-    title: "Payment Date",
+    field: "Atd",
+    title: "ATD",
     width: "120px",
-    visible: true,
+    visible: false,
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.PaymentDate)}</td>;
+        return <td>{formatDate(dataItem.Atd)}</td>;
       },
     },
-  },
-  { field: "MemberOf", title: "Member Of", visible: true },
-  {
+  },  {
     field: "Ata",
     title: "ATA",
     width: "120px",
@@ -103,7 +117,19 @@ const allColumns = [
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.ATA)}</td>;
+        return <td>{formatDate(dataItem.Ata)}</td>;
+      },
+    },
+  },  
+  {
+    field: "Etd",
+    title: "ETD",
+    width: "120px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return <td>{formatDate(dataItem.Etd)}</td>;
       },
     },
   },
@@ -115,94 +141,34 @@ const allColumns = [
     cells: {
       data: (props: GridCustomCellProps) => {
         const { dataItem } = props;
-        return <td>{formatDate(dataItem.ETA)}</td>;
+        return <td>{formatDate(dataItem.Eta)}</td>;
       },
     },
   },
-  {
-    field: "Arrival",
-    title: "Arrival",
-    width: "120px",
-    visible: true,
-    cells: {
-      data: (props: GridCustomCellProps) => {
-        const { dataItem } = props;
-        return <td>{formatDate(dataItem.Arrival)}</td>;
-      },
-    },
-  },
-  { field: "StatusType", title: "Status", width: "100px", visible: true },
-  {
-    field: "PendingInvoices",
-    title: "Pending Invoices",
-    width: "150px",
-    visible: false,
-  },
-  {
-    field: "TotalProfit",
-    title: "Total Profit",
-    visible: true,
-    columnMenu: ColumnMenu,
-    cells: { data: TotalProfitCell },
-    width: "100px",
-  },
-  {
-    field: "OperatingUserId",
-    title: "Operating User",
-    width: "150px",
-    visible: false,
-    cells: { data: PersonCell },
-  },
-  {
-    field: "DepartmentName",
-    title: "Department",
-    width: "150px",
-    visible: false,
-  },
-  {
-    field: "Tejrim",
-    title: "Tejrim",
-    width: "100px",
-    visible: false,
-  },
-  {
-    field: "CanceledJob",
-    title: "Canceled Job",
-    width: "100px",
-    visible: false,
-  },
-  {
-    field: "ConsigneeName",
-    title: "Consignee Name",
-    width: "150px",
-    visible: false,
-  },
-  {
-    field: "PendingCosts",
-    title: "Pending Costs",
-    width: "150px",
-    visible: false,
-  },
-  {
-    field: "FullPaid",
-    title: "Full Paid",
-    width: "100px",
-    visible: false,
-    cells: {
-      data: (props: GridCustomCellProps) => {
-        const { dataItem } = props;
-        return (
-          <td>
-            <Checkbox
-              checked={dataItem.FullPaid}
-              disabled={true}
-              style={{ marginLeft: "10px" }}
-            />
-          </td>
-        );
-      },
-    },
-  },
+  { field: "Status", title: "Status", width: "150px", visible: true },
+  { field: "blstatus", title: "BL Status", width: "150px", visible: false },
+  { field: "Notes", title: "Notes", width: "150px", visible: false },
+  { field: "CarrierName", title: "Carrier Name", width: "150px", visible: false },
+  { field: "ArrivalDays", title: "Arrival Days", width: "150px", visible: true },
+  { field: "TejrimDays", title: "Tejrim Days", width: "150px", visible: true },
+  { field: "DiffCntrToCnee", title: "Diff Cntr To Cnee", width: "150px", visible: false },
+  { field: "CountryOfDeparture", title: "Country Of Departure", width: "150px", visible: false },
+  { field: "Departure", title: "Departure", width: "150px", visible: false },
+  { field: "CountryOfDestination", title: "Country Of Destination", width: "150px", visible: false },
+  { field: "Destination", title: "Destination", width: "150px", visible: false },
+  { field: "Tejrim", title: "Tejrim", width: "150px", visible: false },
+  { field: "TejrimDate", title: "Tejrim Date", width: "150px", visible: false },
+  { field: "JobType", title: "Job Type", width: "150px", visible: true },
+  { field: "FullPaid", title: "Full Paid", width: "150px", visible: true },
+  { field: "PaidDO", title: "Paid D/O", width: "120px", visible: false },
+  { field: "PaidDate", title: "Paid Date", width: "120px", visible: false },
+  { field: "MissingDocuments", title: "Missing Documents", width: "120px", visible: false },
+  { field: "MissingDocumentsDate", title: "Missing Documents Date", width: "120px", visible: false },
+  { field: "PendingInvoices", title: "Pending Invoices", width: "120px", visible: false },
+  { field: "PendingCosts", title: "Pending Costs", width: "120px", visible: false },
+  { field: "TotalInvoices", title: "Total Invoices", visible: true, columnMenu: ColumnMenu, cells: { data: TotalProfitCell }, width: "100px" },
+  { field: "TotalCosts", title: "Total Costs", visible: true, columnMenu: ColumnMenu, cells: { data: TotalProfitCell }, width: "100px" },
+  { field: "TotalProfit", title: "Total Profit", visible: true, columnMenu: ColumnMenu, cells: { data: TotalProfitCell }, width: "100px" },
 ];
 
 export default function OngoingJobComponent() {
@@ -457,7 +423,7 @@ export default function OngoingJobComponent() {
     const renderShipmentStatusSelector = () => {
       const shipmentStatusOptions = [
         { text: "All", value: "All" },
-        { text: "Tobe Loaded", value: "TobeLoaded" },
+        { text: "To be Loaded", value: "TobeLoaded" },
         { text: "On Water", value: "OnWater" },
         { text: "Under Clearance", value: "UnderClearance" },
       ];
