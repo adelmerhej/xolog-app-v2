@@ -72,7 +72,7 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 
 // Save JSON data to MongoDB
 async function saveToMongoDB(collectionName: string, data: any[], 
-  skipDeleteJobStatus: boolean = false, skipDeleteOngoingJobs: boolean = false): Promise<void> {
+  skipDeleteJobStatus: boolean = false): Promise<void> {
 
   try {
     // Validate data before proceeding
@@ -122,9 +122,6 @@ async function saveToMongoDB(collectionName: string, data: any[],
         if (skipDeleteJobStatus) {
           console.log("Skip Deleting Collection Name:", collectionName);
           collectionName = "jobstatus";
-        }else if(skipDeleteOngoingJobs){
-          console.log("Skip Deleting Collection Name:", collectionName);
-          collectionName = "ongoingjobs";
         }else{
         await collection.deleteMany({});
         console.log("Deleting Collection Name:", collectionName);

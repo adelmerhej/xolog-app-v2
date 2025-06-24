@@ -39,11 +39,11 @@ function getShipmentStatusMapping(shipmentStatus: string) {
   const status = shipmentStatus.toLowerCase();
   
   if (status === "tobeloaded") {
-    return { ATD: null, ATA: null };
+    return { Atd: null, Ata: null };
   } else if (status === "onwater") {
-    return { ATD: { $ne: null }, ATA: null }; 
+    return { Atd: { $ne: null }, Ata: null }; 
   } else if (status === "underclearance") {
-    return { ATD: { $ne: null }, ATA: { $ne: null } }; 
+    return { Atd: { $ne: null }, Ata: { $ne: null } }; 
   }
   return {};
 }

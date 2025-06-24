@@ -33,10 +33,9 @@ export async function POST() {
     for (const proc of procedures) {
       try {
         const skipDeleteJobStatus = proc.name === '__Job_Status_FullPaid_to_JSON'; // Skip delete for this specific procedure
-        const skipDeleteOngoingJobs = proc.name === '__OngoingJobs_UnderClearance_to_JSON'; // Skip delete for this specific procedure
         
         const data = await executeStoredProc(proc.name);
-        await saveToMongoDB(proc.collection, data, skipDeleteJobStatus, skipDeleteOngoingJobs);
+        await saveToMongoDB(proc.collection, data, skipDeleteJobStatus);
 
         // results.push({
         //   procedure: proc.name,
