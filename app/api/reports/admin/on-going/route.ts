@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@/lib/mongoose";
-import { JobOngoingModel } from "@/models/reports/JobOngoing";
+import { OngoingJob } from "@/models/reports/OngoingJob";
 
 function getDepartmentMapping(department: string) {
   switch (department) {
@@ -177,16 +177,16 @@ export async function GET(request: NextRequest) {
     //   query.JobDate = { $lte: endDate };
     // }
 
-    const totalProfitsQuery = JobOngoingModel.find(query);
+    const totalProfitsQuery = OngoingJobModel.find(query);
     if (limit > 0) {
       totalProfitsQuery.skip((page - 1) * limit).limit(limit);
     }
     const totalProfits = await totalProfitsQuery;
-    const total = await JobOngoingModel.countDocuments(query);
+    const total = await OngoingJobModel.countDocuments(query);
 
     console.log("total", total);
 
-    const grandTotalAgg = await JobOngoingModel.aggregate([
+    const grandTotalAgg = await OngoingJobModel.aggregate([
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
     ]);
     const grandTotalProfit = grandTotalAgg[0]?.total || 0;

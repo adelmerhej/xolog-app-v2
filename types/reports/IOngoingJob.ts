@@ -1,4 +1,4 @@
-export interface IJobOngoing extends Document {
+export interface IOngoingJob extends Document {
     DepartmentName: string;
     StatusType: string;
     TotalProfit: number;

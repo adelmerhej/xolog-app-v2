@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
 
-interface IJobOngoingModel extends Document {
+interface IOngoingJob extends Document {
   DepartmentName: string;
   StatusType: string;
   TotalProfit: number;
@@ -31,7 +31,7 @@ interface IJobOngoingModel extends Document {
   updatedAt: Date;
 }
 
-const JobOngoingSchema: Schema<IJobOngoingModel> = new Schema(
+const OngoingJobSchema: Schema<IOngoingJob> = new Schema(
   {
     DepartmentName: {
       type: String,
@@ -152,15 +152,15 @@ const JobOngoingSchema: Schema<IJobOngoingModel> = new Schema(
 
 
 // Add indexes for better performance
-JobOngoingSchema.index({ CustomerName: 1 });
-JobOngoingSchema.index({ StatusType: 1 });
-JobOngoingSchema.index({ JobDate: 1 });
-JobOngoingSchema.index({ JobType: 1 });
+OngoingJobSchema.index({ CustomerName: 1 });
+OngoingJobSchema.index({ StatusType: 1 });
+OngoingJobSchema.index({ JobDate: 1 });
+OngoingJobSchema.index({ JobType: 1 });
 
 // Virtual for checking if job is overdue (ETA has passed)
-JobOngoingSchema.virtual('isOverdue').get(function() {
+OngoingJobSchema.virtual('isOverdue').get(function() {
   return this.Ata && this.Ata < new Date();
 });
 
-export const JobOngoingModel: Model<IJobOngoingModel> =
-  mongoose.models.Job || mongoose.model<IJobOngoingModel>("Job", JobOngoingSchema);
+export const OngoingJob: Model<IOngoingJob> =
+  mongoose.models.OngoingJob || mongoose.model<IOngoingJob>("OngoingJob", OngoingJobSchema);
