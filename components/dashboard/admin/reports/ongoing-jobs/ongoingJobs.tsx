@@ -286,7 +286,7 @@ export default function OngoingJobComponent() {
             ? ["All"]
             : selectedDepartments
           : ["All"];
-      const statusParam = Array.isArray(status) ? status.join(",") : status;
+      const departmentsStatusParam = Array.isArray(status) ? status.join(",") : status;
 
       // Format date range for API request
       const startDate = selectedDateRange.from
@@ -311,8 +311,8 @@ export default function OngoingJobComponent() {
       const res = await fetch(
         `/api/reports/admin/on-going?
           page=${Math.floor(pageState.skip / pageState.take) + 1}
-          &search=${globalFilter}
-          &status=${encodeURIComponent(statusParam)}
+          &globalFilter=${globalFilter}
+          &departmentsStatus=${encodeURIComponent(departmentsStatusParam)}
           &shipmentStatus=${encodeURIComponent(shipmentStatus)}
           &departments=${selectedDepartmentsParam}
           &fullpaid=${fullPaidChecked}
@@ -365,19 +365,31 @@ export default function OngoingJobComponent() {
 
   // Render column selector
   const renderColumnSelector = () => {
+    const allSelected = columns.every(column => column.visible);
+    const items = [
+      { text: "All", selected: allSelected, id: "all" },
+      ...columns.map((column) => ({
+        text: column.title,
+        selected: column.visible,
+        id: column.field,
+      }))
+    ];
+
+    const handleItemClick = (e: DropDownButtonItemClickEvent) => {
+      if (e.item.id === "all") {
+        setColumns(columns.map(column => ({ ...column, visible: true })));
+      } else {
+        toggleColumnVisibility(e.item.id);
+      }
+    };
+
     return (
       <div style={{ marginBottom: "10px" }}>
         <DropDownButton
           text="Columns"
           themeColor={"base"}
-          items={columns.map((column) => ({
-            text: column.title,
-            selected: column.visible,
-            id: column.field,
-          }))}
-          onItemClick={(e: DropDownButtonItemClickEvent) => {
-            toggleColumnVisibility(e.item.id);
-          }}
+          items={items}
+          onItemClick={handleItemClick}
           className="mr-2"
         />
       </div>

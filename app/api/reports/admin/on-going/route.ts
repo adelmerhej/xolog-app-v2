@@ -56,29 +56,39 @@ export async function GET(request: NextRequest) {
     const page = Number(searchParams.get("page")) || 1;
     let limit = Number(searchParams.get("limit"));
     if (!limit || limit === 0) {
-      limit = 0;
+      limit = 0;  // 0 means no limit in mongoose
     }
 
+    const globalFilter = searchParams.get("globalFilter")?.trim() || "";
     const fullpaid =
       searchParams.get("fullpaid")?.trim()?.split(",").filter(Boolean) || [];
 
     const departments =
       searchParams.get("departments")?.trim()?.split(",").filter(Boolean) || [];
 
-    const statuses =
-      searchParams.get("status")?.trim()?.split(",").filter(Boolean) || [];
-
+    const departmentsStatus =
+      searchParams.get("departmentsStatus")?.trim()?.split(",").filter(Boolean) || [];
+      
     const shipmentStatus =
       searchParams.get("shipmentStatus")?.trim()?.split(",").filter(Boolean) || [];
 
     //const startDateParam = searchParams.get("startDate")?.trim() || "";
     //const endDateParam = searchParams.get("endDate")?.trim() || "";
-
+    
     // Build mongoose query
     const query: any = {};
 
-    if (statuses.length > 0) {
-      query.JobStatusType = { $in: statuses };
+    if (globalFilter) {
+      query.$or = [
+        { JobNumber: { $regex: globalFilter, $options: "i" } },
+        { JobName: { $regex: globalFilter, $options: "i" } },
+        { JobDescription: { $regex: globalFilter, $options: "i" } },
+      ];
+    }
+    console.log("globalFilter: ", globalFilter);
+
+    if (departmentsStatus.length > 0) {
+      query.JobStatusType = { $in: departmentsStatus };
     }
 
     if (departments.length > 0) {
@@ -184,8 +194,6 @@ export async function GET(request: NextRequest) {
     const totalProfits = await totalProfitsQuery;
     const total = await OngoingJob.countDocuments(query);
 
-    console.log("total", total);
-
     const grandTotalAgg = await OngoingJob.aggregate([
       { $group: { _id: null, total: { $sum: "$TotalProfit" } } },
     ]);
@@ -193,26 +201,31 @@ export async function GET(request: NextRequest) {
 
     if (totalProfits.length === 0) {
       return NextResponse.json({
-        success: false,
-        data: [],
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0,
-          grandTotalProfit,
+        success: true,
+        data: {
+          data: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            grandTotalProfit,
+          },
         },
       });
     }
 
     return NextResponse.json({
       success: true,
-      data: totalProfits,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+      data: {
+        data: totalProfits,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          grandTotalProfit,
+        },
         grandTotalProfit,
       },
     });
