@@ -156,13 +156,89 @@ const allColumns = [
   { field: "Departure", title: "Departure", width: "150px", visible: false },
   { field: "CountryOfDestination", title: "Country Of Destination", width: "150px", visible: false },
   { field: "Destination", title: "Destination", width: "150px", visible: false },
-  { field: "Tejrim", title: "Tejrim", width: "150px", visible: false },
+  {
+    field: "Tejrim",
+    title: "Tejrim",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.Tejrim}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
   { field: "TejrimDate", title: "Tejrim Date", width: "150px", visible: false },
   { field: "JobType", title: "Job Type", width: "150px", visible: true },
-  { field: "FullPaid", title: "Full Paid", width: "150px", visible: true },
-  { field: "PaidDO", title: "Paid D/O", width: "120px", visible: false },
+  {
+    field: "FullPaid",
+    title: "Full Paid",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.FullPaid}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
+  {
+    field: "PaidDO",
+    title: "Paid D/O",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.PaidDO}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
   { field: "PaidDate", title: "Paid Date", width: "120px", visible: false },
-  { field: "MissingDocuments", title: "Missing Documents", width: "120px", visible: false },
+  {
+    field: "MissingDocuments",
+    title: "Missing Documents",
+    width: "100px",
+    visible: false,
+    cells: {
+      data: (props: GridCustomCellProps) => {
+        const { dataItem } = props;
+        return (
+          <td>
+            <Checkbox
+              checked={dataItem.MissingDocuments}
+              disabled={true}
+              style={{ marginLeft: "10px" }}
+            />
+          </td>
+        );
+      },
+    },
+  },
   { field: "MissingDocumentsDate", title: "Missing Documents Date", width: "120px", visible: false },
   { field: "PendingInvoices", title: "Pending Invoices", width: "120px", visible: false },
   { field: "PendingCosts", title: "Pending Costs", width: "120px", visible: false },
@@ -171,7 +247,7 @@ const allColumns = [
   { field: "TotalProfit", title: "Total Profit", visible: true, columnMenu: ColumnMenu, cells: { data: TotalProfitCell }, width: "100px" },
 ];
 
-export default function OngoingJobComponent() {
+export default function JobStatusComponent() {
   const gridRef = React.useRef<HTMLDivElement>(null);
   const [jobs, setJobs] = useState<IOngoingJob[]>([]);
   const [showLoading, setShowLoading] = React.useState(false);
@@ -308,23 +384,23 @@ export default function OngoingJobComponent() {
           ? shipmentStatusParam.join(",")
           : shipmentStatusParam;
 
-      const res = await fetch(
-        `/api/reports/admin/on-going?
-          page=${Math.floor(pageState.skip / pageState.take) + 1}
-          &globalFilter=${globalFilter}
-          &departmentsStatus=${encodeURIComponent(departmentsStatusParam)}
-          &shipmentStatus=${encodeURIComponent(shipmentStatus)}
-          &departments=${selectedDepartmentsParam}
-          &fullpaid=${fullPaidChecked}
-          &startDate=${startDate}
-          &endDate=${endDate}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+        const res = await fetch(
+          `/api/reports/admin/on-going?
+            page=${Math.floor(pageState.skip / pageState.take) + 1}
+            &globalFilter=${globalFilter}
+            &departmentsStatus=${encodeURIComponent(departmentsStatusParam)}
+            &shipmentStatus=${encodeURIComponent(shipmentStatus)}
+            &departments=${selectedDepartmentsParam}
+            &fullpaid=${fullPaidChecked}
+            &startDate=${startDate}
+            &endDate=${endDate}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
       if (!res.ok) throw new Error("Failed to fetch jobs");
 
@@ -344,9 +420,8 @@ export default function OngoingJobComponent() {
       setShowLoading(false);
       setGrandTotalProfit(0);
     }
-  }, [statusFilter, selectedDepartments, selectedDateRange.from, 
-    selectedDateRange.to, shipmentStatusFilter, pageState.skip, pageState.take, 
-    globalFilter, fullPaidChecked]);
+  }, [statusFilter, selectedDepartments, selectedDateRange.from, selectedDateRange.to, shipmentStatusFilter, 
+    pageState.skip, pageState.take, globalFilter, fullPaidChecked]);
 
   useEffect(() => {
     fetchData();
@@ -365,32 +440,55 @@ export default function OngoingJobComponent() {
 
   // Render column selector
   const renderColumnSelector = () => {
-    const allSelected = columns.every(column => column.visible);
-    const items = [
-      { text: "All", selected: allSelected, id: "all" },
-      ...columns.map((column) => ({
-        text: column.title,
-        selected: column.visible,
-        id: column.field,
-      }))
-    ];
-
-    const handleItemClick = (e: DropDownButtonItemClickEvent) => {
-      if (e.item.id === "all") {
-        setColumns(columns.map(column => ({ ...column, visible: true })));
-      } else {
-        toggleColumnVisibility(e.item.id);
-      }
-    };
-
     return (
       <div style={{ marginBottom: "10px" }}>
         <DropDownButton
           text="Columns"
           themeColor={"base"}
-          items={items}
-          onItemClick={handleItemClick}
+          items={columns.map((column) => ({
+            text: column.title,
+            selected: column.visible,
+            id: column.field,
+          }))}
+          onItemClick={(e: DropDownButtonItemClickEvent) => {
+            toggleColumnVisibility(e.item.id);
+          }}
           className="mr-2"
+        />
+      </div>
+    );
+  };
+
+  // Status options
+  const renderShipmentStatusSelector = () => {
+    const shipmentStatusOptions = [
+      { text: "All", value: "All" },
+      { text: "To be Loaded", value: "TobeLoaded" },
+      { text: "On Water", value: "OnWater" },
+      { text: "Under Clearance", value: "UnderClearance" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={shipmentStatusOptions}
+          textField="text"
+          dataItemKey="value"
+          value={shipmentStatusOptions.filter(
+            (option) =>
+              shipmentStatusFilter.includes(option.value) &&
+              (option.value !== "All" || shipmentStatusFilter.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setShipmentStatusFilter(values);
+            } else {
+              setShipmentStatusFilter(["All"]);
+            }
+          }}
+          placeholder="Select status..."
+          className="w-[220px] mr-2"
         />
       </div>
     );
@@ -431,40 +529,6 @@ export default function OngoingJobComponent() {
     );
   };
 
-    // Status options
-    const renderShipmentStatusSelector = () => {
-      const shipmentStatusOptions = [
-        { text: "All", value: "All" },
-        { text: "To be Loaded", value: "TobeLoaded" },
-        { text: "On Water", value: "OnWater" },
-        { text: "Under Clearance", value: "UnderClearance" },
-      ];
-      return (
-        <div style={{ marginBottom: "20px", minWidth: 220 }}>
-          <MultiSelect
-            data={shipmentStatusOptions}
-            textField="text"
-            dataItemKey="value"
-            value={shipmentStatusOptions.filter(
-              (option) =>
-                shipmentStatusFilter.includes(option.value) &&
-                (option.value !== "All" || shipmentStatusFilter.length === 1)
-            )}
-            onChange={(e) => {
-              let values = e.value.map((item: any) => item.value);
-              if (values.length > 0) {
-                values = values.filter((v: string) => v !== "All");
-                setShipmentStatusFilter(values);
-              } else {
-                setShipmentStatusFilter(["All"]);
-              }
-            }}
-            placeholder="Select status..."
-            className="w-[220px] mr-2"
-          />
-        </div>
-      );
-    };
 
   // Render checkbox for full paid filter
   // This checkbox will filter jobs that are fully paid
@@ -546,43 +610,40 @@ export default function OngoingJobComponent() {
   };
 
   const renderDepartmentsSelector = () => {
-      const departments = [
-        { text: "All", value: "All" },
-        { text: "AIR IMPORT", value: "AIR IMPORT" },  
-        { text: "AIR EXPORT", value: "AIR EXPORT" },
-        { text: "AIR CLEARANCE", value: "AIR CLEARANCE" },
-        { text: "SEA IMPORT", value: "SEA IMPORT" },
-        { text: "SEA EXPORT", value: "SEA EXPORT" },
-        { text: "SEA CLEARANCE", value: "SEA CLEARANCE" },
-        { text: "LAND FREIGHT", value: "LAND FREIGHT" },
-        { text: "SEA CROSS", value: "SEA CROSS" },
-      ];
-      return (
-        <div style={{ marginBottom: "20px", minWidth: 220 }}>
-          <MultiSelect
-            data={departments}
-            textField="text"
-            dataItemKey="value"
-            value={departments.filter(
-              (option) =>
-                selectedDepartments.includes(option.value) &&
-                (option.value !== "All" || selectedDepartments.length === 1)
-            )}
-            onChange={(e) => {
-              let values = e.value.map((item: any) => item.value);
-              if (values.length > 0) {
-                values = values.filter((v: string) => v !== "All");
-                setSelectedDepartments(values);
-              } else {
-                setSelectedDepartments(["All"]);
-              }
-            }}
-            placeholder="Select departments..."
-            className="w-[220px] mr-2"
-          />
-        </div>
-      );
-    };
+    const departments = [
+      { text: "All", value: "All" },
+      { text: "Import", value: "Import" },
+      { text: "Export", value: "Export" },
+      { text: "Clearance", value: "Clearance" },
+      { text: "Land Freight", value: "Land Freight" },
+      { text: "Sea Cross", value: "Sea Cross" },
+    ];
+    return (
+      <div style={{ marginBottom: "20px", minWidth: 220 }}>
+        <MultiSelect
+          data={departments}
+          textField="text"
+          dataItemKey="value"
+          value={departments.filter(
+            (option) =>
+              selectedDepartments.includes(option.value) &&
+              (option.value !== "All" || selectedDepartments.length === 1)
+          )}
+          onChange={(e) => {
+            let values = e.value.map((item: any) => item.value);
+            if (values.length > 0) {
+              values = values.filter((v: string) => v !== "All");
+              setSelectedDepartments(values);
+            } else {
+              setSelectedDepartments(["All"]);
+            }
+          }}
+          placeholder="Select departments..."
+          className="w-[220px] mr-2"
+        />
+      </div>
+    );
+  };
 
   const filteredJobs = useMemo(() => {
     if (statusFilter.includes("All")) return jobs;
@@ -670,10 +731,9 @@ export default function OngoingJobComponent() {
           <div className="flex flex-wrap gap-2">
             {renderColumnSelector()}
             {renderDepartmentsSelector()}
-            {renderShipmentStatusSelector()}
             {renderStatusSelector()}
             {renderCheckFullpaidSelector()}
-            
+
             {/* Date Range Picker */}
             <div className="flex flex-col md:flex-row gap-4 justify-start">
               <CalendarDatePicker
