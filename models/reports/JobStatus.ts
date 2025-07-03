@@ -149,7 +149,7 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
       type: Date,
     },
   },
-  { timestamps: true, collection: "jobstatuses" }
+  { timestamps: true, collection: "jobstatus" }
 );
 
 

@@ -107,7 +107,7 @@ const ClientsInvoiceReportSchema: Schema<IClientsInvoiceReport> = new Schema(
       default: 0,
     },
   },
-  { timestamps: true, collection: "ClientsInvoiceReport" }
+  { timestamps: true, collection: "clientinvoices" }
 );
 
 // Add indexes for better performance
