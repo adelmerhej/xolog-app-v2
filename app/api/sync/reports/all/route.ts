@@ -3,7 +3,7 @@ import { sqlConfig, mongoConfig } from '@/lib/dbUtils';
 import { NextResponse } from 'next/server';
 
 const procedures = [
-  { name: '__ClientsInvoiceReport_to_JSON', collection: 'ClientsInvoiceReport' },
+  { name: '__ClientsInvoiceReport_to_JSON', collection: 'clientinvoices' },
   { name: '__Empty_Containers_to_JSON', collection: 'emptycontainers' },
   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' },
   { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
@@ -13,7 +13,7 @@ const procedures = [
 ];
 
 // Validate collection names
-const validCollections = new Set(['ClientsInvoiceReport', 'emptycontainers', 
+const validCollections = new Set(['clientinvoices', 'emptycontainers', 
   'totalprofits', 'jobstatus', 'ongoingjobs']);
 //const validCollections = new Set(['totalprofits']);
 

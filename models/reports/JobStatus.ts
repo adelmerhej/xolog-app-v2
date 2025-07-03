@@ -20,6 +20,8 @@ interface IJobStatus extends Document {
   PaymentDate?: Date;
   MemberOf: string;
   JobType: string;
+  Atd?: Date;
+  Etd?: Date;
   Ata?: Date;
   Eta?: Date;
   FullPaid?: boolean; // Optional field for full paid status
@@ -147,7 +149,7 @@ const JobStatusSchema: Schema<IJobStatus> = new Schema(
       type: Date,
     },
   },
-  { timestamps: true, collection: "jobstatus" }
+  { timestamps: true, collection: "jobstatuses" }
 );
 
 

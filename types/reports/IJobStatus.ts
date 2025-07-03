@@ -7,7 +7,7 @@ export interface IJobStatus extends Document {
   ReferenceNo: string;
   JobDate: Date;
   OperatingUserId: string;
-  DepartmentId: string;
+  DepartmentId: number;
   UserName: string;
   CustomerName: string;
   PendingInvoices: number;
@@ -15,9 +15,11 @@ export interface IJobStatus extends Document {
   Tejrim: string;
   CanceledJob: boolean;
   ConsigneeName: string;
-  PaymentDate: Date;
+  PaymentDate?: Date;
   MemberOf: string;
   JobType: string;
+  Atd?: Date;
+  Etd?: Date;
   Ata?: Date;
   Eta?: Date;
   FullPaid?: boolean;
