@@ -137,11 +137,11 @@ async function saveToMongoDB(collectionName: string, data: any[]): Promise<void>
     
     while (!insertSuccess && retryCount < maxRetries) {
       try {
-        await collection.insertMany(data);
-        //console.log(`Inserted documents into collection ${collectionName}:`, {
-        //  insertedCount: insertResult.insertedCount,
-        //  acknowledged: insertResult.acknowledged
-        //});
+        const insertResult = await collection.insertMany(data);
+        console.log(`Inserted documents into collection ${collectionName}:`, {
+         insertedCount: insertResult.insertedCount,
+         acknowledged: insertResult.acknowledged
+        });
         insertSuccess = true;
       } catch (insertError) {
         retryCount++;
