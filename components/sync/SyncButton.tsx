@@ -6,6 +6,7 @@ export default function SyncButton() {
   const [syncResult, setSyncResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
+
   const handleSync = async () => {
     setIsSyncing(true);
     setError(null);

@@ -71,8 +71,7 @@ async function executeStoredProc(procedureName: string, params: any = {}): Promi
 }
 
 // Save JSON data to MongoDB
-async function saveToMongoDB(collectionName: string, data: any[], 
-  skipDeleteJobStatus: boolean = false): Promise<void> {
+async function saveToMongoDB(collectionName: string, data: any[]): Promise<void> {
 
   try {
     // Validate data before proceeding
@@ -119,17 +118,8 @@ async function saveToMongoDB(collectionName: string, data: any[],
     
     while (!clearSuccess && retryCount < maxRetries) {
       try {
-        if (skipDeleteJobStatus) {
-          console.log("Skip Deleting Collection Name:", collectionName);
-          collectionName = "jobstatus";
-        }else{
         await collection.deleteMany({});
         console.log("Deleting Collection Name:", collectionName);
-      }
-        //console.log(`Cleared collection ${collectionName}:`, {
-        //  deletedCount: deleteResult.deletedCount,
-        //  acknowledged: deleteResult.acknowledged
-        //});
         clearSuccess = true;
       } catch (deleteError) {
         retryCount++;

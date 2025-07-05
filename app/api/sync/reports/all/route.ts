@@ -7,7 +7,6 @@ const procedures = [
   { name: '__Empty_Containers_to_JSON', collection: 'emptycontainers' },
   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' },
   { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
-  { name: '__Job_Status_FullPaid_to_JSON', collection: 'jobstatus' },
   { name: '__OngoingJobs_Status_to_JSON', collection: 'ongoingjobs' },
 
 ];
@@ -31,10 +30,10 @@ export async function POST() {
 
     for (const proc of procedures) {
       try {
-        const skipDeleteJobStatus = proc.name === '__Job_Status_FullPaid_to_JSON'; // Skip delete for this specific procedure
+        //const skipDeleteJobStatus = proc.name === '__Job_Status_FullPaid_to_JSON'; // Skip delete for this specific procedure
         
         const data = await executeStoredProc(proc.name);
-        await saveToMongoDB(proc.collection, data, skipDeleteJobStatus);
+        await saveToMongoDB(proc.collection, data);
 
         // results.push({
         //   procedure: proc.name,
