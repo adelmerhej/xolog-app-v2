@@ -43,7 +43,7 @@ export default function Home() {
       },
     },
   };
-
+  
   // Major shipping hubs with coordinates (x%, y%)
   const shippingHubs = [
     { name: "Rotterdam", x: 52, y: 32, size: 8 },
