@@ -8,7 +8,6 @@ const procedures = [
   { name: '__Total_Profit_to_JSON', collection: 'totalprofits' },
   { name: '__Job_Status_to_JSON', collection: 'jobstatus' },
   { name: '__OngoingJobs_Status_to_JSON', collection: 'ongoingjobs' },
-
 ];
 
 // Validate collection names

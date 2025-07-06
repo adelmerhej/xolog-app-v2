@@ -104,7 +104,7 @@ async function saveToMongoDB(collectionName: string, data: any[]): Promise<void>
         if (retryCount >= maxRetries) {
           throw new Error(`Failed to connect to MongoDB after ${maxRetries} attempts`);
         }
-        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        await new Promise(resolve => setTimeout(resolve, 36000 * retryCount));
       }
     }
 
